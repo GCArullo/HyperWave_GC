@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hyperwave"
+version = "0.1.0"
+description = "Hyperbolic likelihood tools for gravitational-wave data analysis"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "A. Sasli, et al." },
+]
+requires-python = ">=3.10"
+keywords = ["gravitational waves", "bayesian inference", "likelihood", "LIGO", "Virgo", "KAGRA"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.23",
+    "scipy>=1.10",
+    "matplotlib>=3.5",
+    "bilby>=1.2",
+    "lalsuite>=7.20",
+    "gwpy>=3.0",
+    "joblib>=1.2",
+    "eryn>=0.1.9",
+]
+
+[project.optional-dependencies]
+plot = ["corner>=2.2", "chainconsumer>=0.33"]
+sampling = ["pocomc>=0.2"]
+gpu = ["cupy-cuda12x>=13.0"]
+dev = ["build>=1.2", "pytest>=7.4", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/asasli/HyperWave"
+Repository = "https://github.com/asasli/HyperWave"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["hyperwave*"]
+exclude = ["build*", "tests*"]
+
+[tool.setuptools.package-data]
+hyperwave = ["static/*"]
