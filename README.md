@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="hyperwave/static/logo.png" alt="HyperWave logo" height="260" />
+  <img src="static/logo.png" alt="HyperWave logo" height="260" />
 </p>
 
 # HyperWave
