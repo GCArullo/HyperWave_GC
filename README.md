@@ -20,6 +20,13 @@ estimation.
 
 ## Installation
 
+HyperWave uses `pyproject.toml` and can be installed directly from a checkout.
+
+```bash
+git clone https://github.com/asasli/HyperWave.git
+cd HyperWave
+```
+
 ### 1. Create a clean environment
 
 ``` bash
