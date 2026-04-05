@@ -1,10 +1,7 @@
-```{=html}
 <p align="center">
-```
-`<img src="static/logo.png" alt="HyperWave logo" height="260" />`{=html}
-```{=html}
+  <img src="hyperwave/static/logo.png" alt="HyperWave logo" height="260" />
 </p>
-```
+
 # HyperWave
 
 HyperWave is a Python package for robust gravitational-wave inference
