@@ -71,6 +71,29 @@ print(cp.cuda.is_available())
 EOF
 ```
 
+## Contributing
+
+Issues and pull requests are welcome:
+
+- https://github.com/asasli/HyperWave/issues
+- https://github.com/asasli/HyperWave/pulls
+
+## Authors
+
+- A. Sasli
+- N. Karnesis
+- M. Karamanis
+- M. W. Coughlin
+- V. Mandic
+- N. Stergioulas
+
+## Funding
+
+Development of HyperWave has been supported in part by:
+
+- U.S. National Science Foundation HDR Institute for Accelerating AI Algorithms for Data Driven Discovery (A3D3), Cooperative Agreement PHY-2117997
+- Bodossaki Foundation
+
 ## License
 
-MIT License
+HyperWave is released under the MIT License. See [LICENSE](LICENSE).
