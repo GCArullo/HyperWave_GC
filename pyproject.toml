@@ -39,7 +39,7 @@ dependencies = [
 [project.optional-dependencies]
 plot = ["corner>=2.2", "chainconsumer>=0.33"]
 sampling = ["pocomc>=0.2"]
-gpu = ["cupy-cuda12x>=13.0"]
+gpu = ["cupy-cuda12x>=14,<15"]
 dev = ["build>=1.2", "pytest>=7.4", "ruff>=0.6"]
 
 [project.urls]
