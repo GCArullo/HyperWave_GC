@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hyperwave"
-version = "0.1.0"
-description = "Hyperbolic likelihood tools for gravitational-wave data analysis"
+version = "2.0.0"
+description = "Hyperbolic likelihood tools for gravitational-wave data analysis with batched waveform generation"
 readme = "README.md"
 license = { file = "LICENSE" }
 authors = [
@@ -14,7 +14,7 @@ authors = [
 requires-python = ">=3.10"
 keywords = ["gravitational waves", "bayesian inference", "likelihood", "LIGO", "Virgo", "KAGRA"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -22,6 +22,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Astronomy",
     "Topic :: Scientific/Engineering :: Physics",
 ]
@@ -29,30 +30,58 @@ dependencies = [
     "numpy>=1.23",
     "scipy>=1.10",
     "matplotlib>=3.5",
-    "bilby>=1.2",
     "lalsuite>=7.20",
     "gwpy>=3.0",
     "joblib>=1.2",
     "eryn>=0.1.9",
+    # bilby is retained only for its prior distributions (inference layer).
+    "bilby>=1.2",
 ]
 
 [project.optional-dependencies]
 plot = ["corner>=2.2", "chainconsumer>=0.33"]
 sampling = ["pocomc>=0.2"]
-gpu = ["cupy-cuda12x>=14,<15"]
-dev = ["build>=1.2", "pytest>=7.4", "ruff>=0.6"]
+flows = ["pocomc>=1.2", "torch>=2.0"]
+lisa = ["lisaanalysistools>=1.2.8"]
+gpu = ["cupy-cuda12x>=13.0"]
+# ml4gw requires python < 3.13; the marker keeps `pip install` working on 3.13.
+ml4gw = ["ml4gw>=0.7.12; python_version < '3.13'"]
+dev = ["build>=1.2", "pytest>=7.4", "ruff>=0.6", "pre-commit>=3.5"]
+docs = ["mkdocs-material>=9.5", "mkdocstrings[python]>=0.24"]
 
 [project.urls]
 Homepage = "https://github.com/asasli/HyperWave"
 Repository = "https://github.com/asasli/HyperWave"
+Issues = "https://github.com/asasli/HyperWave/issues"
 
 [tool.setuptools]
 include-package-data = true
 
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
 include = ["hyperwave*"]
-exclude = ["build*", "tests*"]
 
 [tool.setuptools.package-data]
-hyperwave = ["static/*"]
+hyperwave = ["static/*", "py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+# Default (E, F) plus import sorting. UP/B modernisation rules can be enabled
+# later; they add churn to code inherited from v1.
+extend-select = ["I"]
+ignore = [
+    "E741",  # ambiguous variable names (l1/L1 detector labels, etc.)
+    "E712",  # `== True/False`: intentional element-wise numpy mask comparisons
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Plotting helpers inherited from v1 (duplicate rcParams keys, unused handles).
+"src/hyperwave/plots/*" = ["F601", "F841"]
