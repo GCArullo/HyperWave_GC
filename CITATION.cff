@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use HyperWave, please cite it as below."
+title: "HyperWave: hyperbolic likelihood tools for gravitational-wave data analysis"
+type: software
+version: 2.0.0
+license: MIT
+repository-code: "https://github.com/asasli/HyperWave"
+authors:
+  - family-names: Sasli
+    given-names: A.
+  - family-names: Karnesis
+    given-names: N.
+  - family-names: Karamanis
+    given-names: M.
+  - family-names: Coughlin
+    given-names: M. W.
+  - family-names: Mandic
+    given-names: V.
+  - family-names: Stergioulas
+    given-names: N.
+keywords:
+  - gravitational waves
+  - bayesian inference
+  - hyperbolic likelihood
+  - LIGO
+  - Virgo
+  - KAGRA
+  - LISA
