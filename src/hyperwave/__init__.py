@@ -44,7 +44,11 @@ from .likelihoods import (
 from .ml4gw import ml4gw_available, torch_cuda_available
 from .result import Result
 from .utils import load_object, save_object
-from . import validation
+
+try:
+    from . import validation
+except ImportError:
+    validation = None  # pending upload
 
 __all__ = [
     "__version__",

@@ -14,17 +14,16 @@
 
 ::: hyperwave.inference.LVKinference
 
-::: hyperwave.inference.wavelet_proposals.MatchedFilterBirth
+The wavelet-proposal API (`MatchedFilterBirth`, `build_mf_birth`,
+`build_guided_birth`, …) is pending the upload of
+`src/hyperwave/inference/wavelet_proposals.py`.
 
-::: hyperwave.inference.wavelet_proposals.build_mf_birth
-
-::: hyperwave.inference.wavelet_proposals.build_guided_birth
-
-## Results & validation
+## Results
 
 ::: hyperwave.result.Result
 
-::: hyperwave.validation.pp
+PP-test validation API (`hyperwave.validation.pp`) is pending the upload of
+`src/hyperwave/validation/`.
 
 ## Detectors & templates
 
