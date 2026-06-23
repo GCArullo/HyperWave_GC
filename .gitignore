@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+*.whl
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
+# run artifacts / outputs
+logs/
+chains/
+*.h5
+*.pkl
+.DS_Store
+results/
+examples/**/results/
+site/

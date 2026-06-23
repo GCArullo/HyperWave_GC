@@ -1,0 +1,33 @@
+name: docs
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # gh-deploy needs full history for the gh-pages branch
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      # API pages import hyperwave (mkdocstrings); install with docs extras + runtime deps.
+      - run: pip install -e ".[docs]"
+      - name: Build (strict, PR check)
+        if: github.event_name == 'pull_request'
+        run: mkdocs build --strict
+      - name: Deploy to gh-pages
+        if: github.event_name != 'pull_request'
+        run: mkdocs gh-deploy --force --strict
