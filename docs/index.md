@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo.png" alt="HyperWave logo" height="220" />
+</p>
+
 # HyperWave
 
 **Fast, robust Bayesian inference for gravitational-wave data.**

@@ -8,6 +8,8 @@ repo_name: asasli/HyperWave
 
 theme:
   name: material
+  logo: assets/logo.png
+  favicon: assets/logo.png
   palette:
     - scheme: default
       primary: deep purple
