@@ -1,0 +1,2845 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Fast, robust gravitational-wave parameter estimation — four likelihoods (Gaussian, hyperbolic, Whittle, heterodyne), GPU waveforms, wavelet reconstruction, LISA support.">
+      
+      
+      
+      
+        <link rel="prev" href="../validation/">
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>API reference - HyperWave</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="HyperWave" class="md-header__button md-logo" aria-label="HyperWave" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HyperWave
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="deep-purple" data-md-color-accent="indigo"  aria-label="Light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/asasli/HyperWave" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    asasli/HyperWave
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="HyperWave" class="md-nav__button md-logo" aria-label="HyperWave" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    HyperWave
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/asasli/HyperWave" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    asasli/HyperWave
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quickstart
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../likelihoods/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Likelihoods
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../gpu/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GPU acceleration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wavelets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wavelet reconstruction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lisa/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LISA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation (PP tests)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#likelihoods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Likelihoods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GWLikelihoods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_residual_batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.HeterodyneLikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeterodyneLikelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.HeterodyneLikelihood.logl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        logl
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.HeterodyneLikelihood.from_lvk_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_lvk_template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.heterodyne.heterodyne_bin_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        heterodyne_bin_edges
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaveletLikelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.log_likelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_likelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.single" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        single
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.grouped_log_like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grouped_log_like
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.grouped_log_like_sky" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grouped_log_like_sky
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LVKinference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.get_samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_samples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.get_clean_chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_clean_chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.get_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_result
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.__getitem__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __getitem__
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.percentile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        percentile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.credible_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        credible_interval
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.credible_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        credible_level
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.to_pandas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_pandas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.corner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        corner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detectors-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detectors &amp; templates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lvk.GW" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GW
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lvk.GW.make_injections_to_ifo_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_injections_to_ifo_batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lvk.GW.make_injections_to_ifo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_injections_to_ifo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.LISAAETTemplate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LISAAETTemplate
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LISAAETTemplate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.LISAAETTemplate.make_injections_to_ifo_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_injections_to_ifo_batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.lisatools_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lisatools_available
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.prepare_lisa_aet_inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        prepare_lisa_aet_inputs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.build_lisa_aet_likelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_lisa_aet_likelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#likelihoods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Likelihoods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GWLikelihoods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_residual_batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.HeterodyneLikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HeterodyneLikelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.HeterodyneLikelihood.logl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        logl
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.HeterodyneLikelihood.from_lvk_template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        from_lvk_template
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.heterodyne.heterodyne_bin_edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        heterodyne_bin_edges
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WaveletLikelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.log_likelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        log_likelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.single" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        single
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.grouped_log_like" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grouped_log_like
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.WaveletLikelihood.grouped_log_like_sky" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        grouped_log_like_sky
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LVKinference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.get_samples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_samples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.get_clean_chain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_clean_chain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.inference.LVKinference.get_result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_result
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Result
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.__getitem__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __getitem__
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.percentile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        percentile
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.credible_interval" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        credible_interval
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.credible_level" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        credible_level
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.to_pandas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_pandas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.corner" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        corner
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.result.Result.save" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detectors-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detectors &amp; templates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lvk.GW" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GW
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lvk.GW.make_injections_to_ifo_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_injections_to_ifo_batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lvk.GW.make_injections_to_ifo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_injections_to_ifo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        aet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.LISAAETTemplate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LISAAETTemplate
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LISAAETTemplate">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.LISAAETTemplate.make_injections_to_ifo_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        make_injections_to_ifo_batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.lisatools_available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        lisatools_available
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.prepare_lisa_aet_inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        prepare_lisa_aet_inputs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.detectors.lisa.aet.build_lisa_aet_likelihood" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        build_lisa_aet_likelihood
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="api-reference">API reference</h1>
+<h2 id="likelihoods">Likelihoods</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="hyperwave.likelihoods.GWLikelihoods"></a>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="hyperwave.likelihoods.base.BaseLikelihood">BaseLikelihood</span></code></p>
+
+
+
+        <p>Log-likelihoods for GW parameter estimation.</p>
+<p>The waveform generation itself is still driven by the template object, which
+is typically CPU-side. When <code>gpu=True</code> HyperWave moves the array-heavy
+residual and likelihood algebra to CuPy while keeping a safe NumPy fallback.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.GWLikelihoods.inner_residual_batch" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">inner_residual_batch</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Vectorised noise-weighted residual for a batch <code>p</code> of shape <code>(N, wfdims)</code>.</p>
+<p>Returns <code>(N, n_freq)</code> = <code>4 Re[df * sum_ifo conj(r) r / Sn]</code> with one
+batched template call (no per-walker loop).</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="hyperwave.likelihoods.HeterodyneLikelihood"></a>
+    <div class="doc doc-contents first">
+            <p class="doc doc-class-bases">
+              Bases: <code><span title="hyperwave.likelihoods.base.BaseLikelihood">BaseLikelihood</span></code></p>
+
+
+
+        <p>Relative-binning Gaussian log-likelihood.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>data</code>
+            </td>
+            <td>
+                  <code><span title="array">array</span>(<span title="n_ifo">n_ifo</span>, <span title="n_freq">n_freq</span>)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Frequency-domain data on the full grid.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>f</code>
+            </td>
+            <td>
+                  <code><span title="array">array</span>(<span title="n_freq">n_freq</span>)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Full frequency grid (uniform spacing).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>psd</code>
+            </td>
+            <td>
+                  <code><span title="array">array</span>(<span title="n_ifo">n_ifo</span>, <span title="n_freq">n_freq</span>)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One-sided noise PSDs.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>ifos_list</code>
+            </td>
+            <td>
+                  <code>sequence of str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Channel names (sets <code>n_ifo</code>).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>h0</code>
+            </td>
+            <td>
+                  <code><span title="array">array</span>(<span title="n_ifo">n_ifo</span>, <span title="n_freq">n_freq</span>)</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Reference waveform on the full grid (detector-projected), evaluated at
+<code>theta_ref</code> — ideally near the likelihood maximum (the injection or a
+search trigger point works).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>waveform_edges</code>
+            </td>
+            <td>
+                  <code><span title="callable">callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>waveform_edges(thetas) -&gt; (N, n_ifo, n_edges)</code> giving the
+detector-projected waveform of a parameter batch at <code>self.f_edges</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>chi</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Bin-placement tuning (see :func:<code>heterodyne_bin_edges</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>1.0</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>eps</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Bin-placement tuning (see :func:<code>heterodyne_bin_edges</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>1.0</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>gpu</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Run the per-call contraction on the GPU backend (CuPy) when available.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<details class="note" open>
+  <summary>Notes</summary>
+  <p><code>logl</code> returns <code>&lt;d|h&gt; - &lt;h|h&gt;/2</code> (the <code>-&lt;d|d&gt;/2</code> constant is dropped;
+add <code>self.dd_const</code> if an absolute Gaussian logL is needed).</p>
+</details>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.HeterodyneLikelihood.logl" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">logl</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Vectorised heterodyned logL for a batch <code>theta</code> of shape (N, ndim).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.HeterodyneLikelihood.from_lvk_template" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">from_lvk_template</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">psd</span><span class="p">,</span> <span class="n">ifos_list</span><span class="p">,</span> <span class="n">theta_ref</span><span class="p">,</span> <span class="n">chi</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-classmethod"><code>classmethod</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build a heterodyne likelihood from an LVK template in one call.</p>
+<p><code>template</code> is a :class:<code>hyperwave.detectors.lvk.GW</code> (or its low-level
+<code>Template</code>) on the <strong>full masked grid</strong> <code>f</code>; <code>theta_ref</code> is the
+reference point (injection / trigger). Internally this evaluates <code>h0</code>
+once on the full grid and constructs a second lal <code>Template</code> in
+<em>sequence mode</em> on the sparse bin-edge grid for the per-call batch
+evaluations.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+
+<a id="hyperwave.likelihoods.heterodyne.heterodyne_bin_edges"></a>
+    <div class="doc doc-contents first">
+
+        <p>Choose relative-binning bin-edge <em>indices</em> into the frequency grid <code>f</code>.</p>
+<p>Edges are placed so the maximal differential phase a PN-like waveform can
+accumulate within one bin is <code>&lt;= eps</code> radians (smaller <code>eps</code> = more
+bins = more accurate).</p>
+<p>Returns an integer index array <code>edges</code> (monotone, first=0,
+last=len(f)-1); bin <code>b</code> spans <code>f[edges[b]] .. f[edges[b+1]]</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="hyperwave.likelihoods.WaveletLikelihood"></a>
+    <div class="doc doc-contents first">
+
+
+
+        <p>Coherent Gaussian log-likelihood for a wavelet signal model.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>data</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Frequency-domain detector data <code>(n_ifo, n_freq)</code> on the analysis band.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>psd</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>One-sided PSD <code>(n_ifo, n_freq)</code> on the same band.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>template</code>
+            </td>
+            <td>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A :class:<code>~hyperwave.detectors.waveforms.wavelets.WaveletTemplate</code> whose
+analysis band matches <code>data</code>/<code>psd</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.WaveletLikelihood.log_likelihood" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">log_likelihood</span><span class="p">(</span><span class="n">wavelets</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">ellipticity</span><span class="p">,</span> <span class="n">inds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Vectorised coherent Gaussian log-likelihood.</p>
+<p><code>wavelets</code> is <code>(N, L, 5)</code>; <code>ra/dec/psi/ellipticity</code> are <code>(N,)</code>;
+<code>inds</code> is the optional Eryn active-leaf mask <code>(N, L)</code>. Returns <code>(N,)</code>
+(the constant noise normalisation is dropped; it cancels in RJMCMC).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.WaveletLikelihood.single" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">single</span><span class="p">(</span><span class="n">wavelets</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">ellipticity</span><span class="p">,</span> <span class="n">inds</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Scalar log-likelihood for one sample's set of wavelets.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.WaveletLikelihood.grouped_log_like" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">grouped_log_like</span><span class="p">(</span><span class="n">wavelets_flat</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">ra</span><span class="p">,</span> <span class="n">dec</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">ellipticity</span><span class="p">,</span> <span class="n">n_groups</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Eryn <code>vectorize=True, provide_groups=True</code> log-likelihood (fixed sky).</p>
+<p><code>wavelets_flat</code> is <code>(M, 5)</code> (all active leaves across walkers),
+<code>groups</code> is <code>(M,)</code> with contiguous values <code>[0, G)</code> (Eryn's
+group-map ordering). Returns a NumPy <code>(G,)</code> array of per-walker
+log-likelihoods. All wavelets are generated in one batch and the
+scatter-sum + inner product run on the template's device (GPU when
+<code>gpu=True</code>), making this the fast batched path.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.WaveletLikelihood.grouped_log_like_sky" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">grouped_log_like_sky</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">n_groups</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Two-branch Eryn log-likelihood with a <em>sampled</em> sky.</p>
+<p><code>params</code> is <code>[wavelets (Mw, 5), extrinsic (Me, 4)]</code> and <code>groups</code> is
+<code>[wgroups (Mw,), egroups (Me,)]</code> as passed by Eryn for a
+<code>signal</code> + <code>extrinsic</code> branch run (<code>vectorize=True,
+provide_groups=True</code>). The extrinsic branch carries exactly one leaf per
+walker: <code>(ra, dec, psi, ellipticity)</code>. Returns a NumPy <code>(G,)</code> array.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><h2 id="inference">Inference</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="hyperwave.inference.LVKinference"></a>
+    <div class="doc doc-contents first">
+
+
+
+        <p>A unified inference runner supporting both Eryn and POCOMC samplers.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="hyperwave.inference.LVKinference.loglikelihood">loglikelihood</span></code></td>
+            <td>
+                  <code><span title="typing.Callable">Callable</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Log-likelihood function.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="hyperwave.inference.LVKinference.sampler_name">sampler_name</span></code></td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of the sampler to use ("eryn" or "pocomc").</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="hyperwave.inference.LVKinference.priors">priors</span></code></td>
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dictionary of user-supplied priors.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="hyperwave.inference.LVKinference.noise_priors">noise_priors</span></code></td>
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dictionary of priors for noise-related parameters.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="hyperwave.inference.LVKinference.common_params">common_params</span></code></td>
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Dictionary of parameters common to both samplers (e.g., cmin, cmax, TAG, etc.).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="hyperwave.inference.LVKinference.sampler_kwargs">sampler_kwargs</span></code></td>
+            <td>
+                  <code><span title="dict">dict</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Additional keyword arguments specific to the sampler.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.inference.LVKinference.run" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">run</span><span class="p">()</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Dispatch the sampler execution based on the chosen method.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.inference.LVKinference.get_samples" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_samples</span><span class="p">(</span><span class="n">thin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Load the samples from the Eryn backend.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.inference.LVKinference.get_clean_chain" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_clean_chain</span><span class="p">(</span><span class="n">coords</span><span class="p">,</span> <span class="n">ndim</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>A silly function to get the clean parameter chains out from Eryn. 
+In the future it will not be needed.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.inference.LVKinference.get_result" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_result</span><span class="p">(</span><span class="n">injection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameter_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">thin</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the posterior as a :class:<code>hyperwave.Result</code>.</p>
+<p><code>parameter_names</code> defaults to the prior order (science parameters
+followed by the noise-shape nuisance parameters). <code>injection</code> is an
+optional <code>{name: truth}</code> mapping used by the calibration/PP-tests.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><p>The wavelet-proposal API (<code>MatchedFilterBirth</code>, <code>build_mf_birth</code>,
+<code>build_guided_birth</code>, …) is pending the upload of
+<code>src/hyperwave/inference/wavelet_proposals.py</code>.</p>
+<h2 id="results">Results</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="hyperwave.result.Result"></a>
+    <div class="doc doc-contents first">
+
+
+
+        <p>Posterior samples plus the metadata needed to interpret and persist them.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>samples</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Posterior samples, shape <code>(n_samples, n_dim)</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>parameter_names</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Length <code>n_dim</code> list of column names, aligned with <code>samples</code>.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>injection</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="float">float</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional mapping <code>{name: true_value}</code> of injected parameters (for
+validation / PP-tests). May cover a subset of <code>parameter_names</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>log_evidence</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional evidence estimate and its uncertainty (pocoMC provides these).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>log_evidence_err</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional evidence estimate and its uncertainty (pocoMC provides these).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>sampler</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Name of the sampler that produced the samples (<code>"eryn"</code>/<code>"pocomc"</code>).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>priors</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="dict">dict</span>[<span title="str">str</span>, <span title="tuple">tuple</span>[<span title="float">float</span>, <span title="float">float</span>]]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional mapping <code>{name: (minimum, maximum)}</code> describing the prior
+support (used for plotting ranges and provenance).</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>metadata</code>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>[<span title="str">str</span>, <span title="typing.Any">Any</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Free-form provenance (seed, wall-clock, package version, command, ...).</p>
+              </div>
+            </td>
+            <td>
+                  <code><span title="dict">dict</span>()</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.__getitem__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__getitem__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>1-D marginal samples for a parameter by name.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.percentile" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">percentile</span><span class="p">(</span><span class="n">q</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Per-parameter percentile(s) <code>q</code> in [0, 100].</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.credible_interval" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">credible_interval</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Symmetric <code>level</code> credible interval per parameter.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.credible_level" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">credible_level</span><span class="p">(</span><span class="n">truth</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Quantile of the injected value in each 1-D marginal posterior.</p>
+<p>For parameter <code>θ</code> this is <code>mean(samples_θ &lt; θ_true)</code> -- the credible
+level at which the truth sits. For a correctly calibrated posterior these
+values are Uniform(0, 1) across many injections, which is what the
+PP-test checks (:mod:<code>hyperwave.validation</code>).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.to_pandas" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">to_pandas</span><span class="p">()</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return the posterior as a <code>pandas.DataFrame</code> (requires pandas).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.corner" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">corner</span><span class="p">(</span><span class="n">truths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Corner plot of the posterior (requires <code>corner</code>).</p>
+<p><code>truths=True</code> overlays the stored injection; pass a mapping to override,
+or <code>False</code> for none.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.result.Result.save" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save</span><span class="p">(</span><span class="n">path</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persist to <code>path</code>. <code>.h5</code>/<code>.hdf5</code> use h5py; otherwise <code>.npz</code>.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div><p>PP-test validation API (<code>hyperwave.validation.pp</code>) is pending the upload of
+<code>src/hyperwave/validation/</code>.</p>
+<h2 id="detectors-templates">Detectors &amp; templates</h2>
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<a id="hyperwave.detectors.lvk.GW"></a>
+    <div class="doc doc-contents first">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.detectors.lvk.GW.make_injections_to_ifo_batch" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">make_injections_to_ifo_batch</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Batched, pure generation for the likelihood: <code>(N, n_ifo, n_freq_masked)</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.detectors.lvk.GW.make_injections_to_ifo" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">make_injections_to_ifo</span><span class="p">(</span><span class="n">gw_params</span><span class="p">,</span> <span class="n">raise_error</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Inject the signal into the stored data and return the masked response dict.</p>
+<p>Mirrors the original behaviour: an injection mutates the detector data
+(without accumulating across calls) and returns <code>{ifo_name: masked}</code>.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-module">
+
+
+
+<a id="hyperwave.detectors.lisa.aet"></a>
+    <div class="doc doc-contents first">
+
+        <p>LISA A/E/T integration helpers built around <code>lisatools</code>.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h2 id="hyperwave.detectors.lisa.aet.LISAAETTemplate" class="doc doc-heading">
+            <code>LISAAETTemplate</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Adapter that makes a <code>lisatools</code>-style signal model usable by HyperWave.</p>
+<p>The wrapped <code>signal_model</code> (single source) can return either:</p>
+<ul>
+<li>a <code>DataResidualArray</code></li>
+<li>a dictionary keyed by channel name</li>
+<li>a raw array with shape <code>(nchannels, nfreq)</code></li>
+</ul>
+<p>Pass <code>batch_signal_model</code> to enable the <strong>vectorised</strong> path: HyperWave's
+<code>GWLikelihoods</code> probes for <code>make_injections_to_ifo_batch</code> and, when
+present, generates the whole walker population in a single generator call
+(one bbhx/gbgpu call for all walkers) instead of looping per walker — the fast
+path for both Eryn and pocoMC, which evaluate the likelihood vectorised. The
+batch model receives one array per parameter (length <code>N</code>) and must return
+<code>(N, nchannels, nfreq)</code> (or a channel-keyed dict of <code>(N, nfreq)</code>). When no
+batch model is given the batched entry point is hidden so the likelihood falls
+back to the per-walker path.</p>
+
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="hyperwave.detectors.lisa.aet.LISAAETTemplate.make_injections_to_ifo_batch" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">make_injections_to_ifo_batch</span><span class="p">(</span><span class="n">thetas</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Vectorised signal for a batch of walkers -&gt; <code>(N, nchannels, nfreq)</code>.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.detectors.lisa.aet.lisatools_available" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">lisatools_available</span><span class="p">()</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Return <code>True</code> when <code>lisatools</code>'s A/E/T containers import cleanly.</p>
+<p>The import is done lazily (not at module load) on purpose: importing
+<code>lisatools.analysiscontainer</code> pulls in compiled kernels that <code>SIGILL</code> on
+CPUs without the instruction set the wheel was built for (e.g. AVX-512 on a
+Zen3 node). HyperWave's A/E/T adapter only needs those classes when a <em>user</em>
+passes a real <code>AnalysisContainer</code>/<code>DataResidualArray</code> — the raw-array and
+bbhx/gbgpu paths duck-type instead — so the bridge must stay importable
+without them. <code>BaseException</code> is caught because a <code>SIGILL</code> surfaces here
+as a fatal signal, not an <code>ImportError</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.detectors.lisa.aet.prepare_lisa_aet_inputs" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">prepare_lisa_aet_inputs</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">sensitivity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">AET_CHANNELS</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Convert <code>lisatools</code> containers into the arrays expected by HyperWave.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>data</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A <code>lisatools.analysiscontainer.AnalysisContainer</code>,
+<code>lisatools.datacontainer.DataResidualArray</code>, or a raw array-like object.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>sensitivity</code>
+            </td>
+            <td>
+                  <code><span title="typing.Any">Any</span> | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>A <code>lisatools</code> sensitivity matrix or raw PSD array. If <code>data</code> is an
+<code>AnalysisContainer</code> and <code>sensitivity</code> is omitted, the container's
+sensitivity matrix is used automatically.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>freqs</code>
+            </td>
+            <td>
+                  <code><span title="typing.Sequence">Sequence</span>[<span title="float">float</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Frequency array. If omitted, HyperWave tries to read <code>f_arr</code> or
+<code>frequency_arr</code> from the input objects.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>channels</code>
+            </td>
+            <td>
+                  <code><span title="typing.Sequence">Sequence</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Channel names, typically <code>("A", "E", "T")</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code><span title="hyperwave.detectors.lisa.aet.AET_CHANNELS">AET_CHANNELS</span></code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.detectors.lisa.aet.build_lisa_aet_likelihood" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">build_lisa_aet_likelihood</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">sensitivity</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">freqs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channels</span><span class="o">=</span><span class="n">AET_CHANNELS</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Build a HyperWave likelihood directly from <code>lisatools</code> A/E/T objects.</p>
+
+
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.top", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
