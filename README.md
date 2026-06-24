@@ -9,14 +9,14 @@ hyperbolic (heavy-tailed) likelihoods for non-Gaussian, glitch-prone data with
 batched, GPU-ready waveform generation and a waveform-agnostic wavelet
 reconstruction. It provides detector and noise utilities, frequency-domain
 likelihoods, sampler drivers, and plotting helpers, and runs on top of
-`lalsuite`, `gwpy`, and `eryn`.
+`lalsuite`, `gwpy`, `pocoMC` and `eryn`.
 
 ## Highlights
 
 - Hyperbolic and Gaussian likelihoods for parameter estimation that tolerate
   non-Gaussian noise and glitches.
 - Batched waveform generation: a whole population of parameter sets is evaluated per call. The default backend calls `lalsimulation` directly and reproduces `bilby` waveforms to machine precision; an optional `ml4gw` backend generates batches with PyTorch.
-- Waveform-agnostic reconstruction with a variable number of Morlet-Gabor wavelets, sampled with reversible-jump MCMC (including the sky position).
+- Waveform-agnostic reconstruction with a variable number of Morlet-Gabor wavelets, sampled with reversible-jump MCMC.
 - GPU acceleration through CuPy for the likelihood algebra and the wavelet model, with a NumPy fallback when no GPU is present.
 - Lean, `lal`-backed detector classes (geometry, antenna response, PSDs, strain FFTs); `bilby` is used only for its prior distributions.
 
@@ -95,7 +95,7 @@ HyperWave includes a waveform-agnostic reconstruction that models a signal as a 
 # CPU
 python examples/bbh_wavelet_reconstruction.py --device cpu --nsteps 1000
 
-# GPU (CuPy); --fixed-sky uses the faster sky-fixed path
+# GPU (CuPy)
 python examples/bbh_wavelet_reconstruction.py --device gpu --nsteps 2000
 ```
 
