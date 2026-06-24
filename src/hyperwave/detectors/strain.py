@@ -21,16 +21,34 @@ from scipy.signal.windows import tukey
 DEFAULT_ROLL_OFF = 0.2
 
 
+class _FrequencyDomainStrain(np.ndarray):
+    """Array subclass carrying the original time-domain sample count."""
+
+    def __new__(cls, values, time_domain_length=None):
+        obj = np.asarray(values).view(cls)
+        obj.time_domain_length = time_domain_length
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        self.time_domain_length = getattr(obj, "time_domain_length", None)
+
+
 def nfft(time_domain_strain, sampling_frequency):
     """Single-sided normalised FFT (bilby ``nfft`` convention)."""
+    time_domain_strain = np.asarray(time_domain_strain)
     fd = np.fft.rfft(time_domain_strain) / sampling_frequency
+    fd = _FrequencyDomainStrain(fd, time_domain_length=time_domain_strain.shape[-1])
     freq = np.linspace(0.0, sampling_frequency / 2.0, len(fd))
     return fd, freq
 
 
-def infft(frequency_domain_strain, sampling_frequency):
+def infft(frequency_domain_strain, sampling_frequency, n=None):
     """Inverse of :func:`nfft`."""
-    return np.fft.irfft(frequency_domain_strain) * sampling_frequency
+    if n is None:
+        n = getattr(frequency_domain_strain, "time_domain_length", None)
+    return np.fft.irfft(frequency_domain_strain, n=n) * sampling_frequency
 
 
 def frequency_array(sampling_frequency, duration):
@@ -110,7 +128,8 @@ class StrainData:
         if self._time_domain_strain is not None:
             return self._time_domain_strain
         if self._frequency_domain_strain is not None:
-            return infft(self._frequency_domain_strain, self.sampling_frequency)
+            n = int(round(self.duration * self.sampling_frequency))
+            return infft(self._frequency_domain_strain, self.sampling_frequency, n=n)
         raise ValueError("No strain data set.")
 
     @property

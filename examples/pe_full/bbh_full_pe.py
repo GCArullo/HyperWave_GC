@@ -4,8 +4,7 @@ Gaussian-noise BBH injection, then PE over the **full** CBC parameter vector
 (masses, distance, spins, orientation, sky) plus the per-segment noise-shape
 nuisance parameters of the heavy-tailed hyperbolic likelihood. Runs with either
 Eryn (parallel-tempered RJ-free MCMC) or pocoMC (preconditioned nested-style
-SMC); defaults to pocoMC. This is a cluster-scale run — see the companion
-``examples/clusters/bbh_full_pe.slurm``.
+SMC); defaults to pocoMC.
 
     python examples/pe_full/bbh_full_pe.py --sampler pocomc
     python examples/pe_full/bbh_full_pe.py --sampler eryn --quick   # smoke test
@@ -118,11 +117,17 @@ def main():
             # noise-shape); prior fallback until the callback has trained it.
             from eryn.moves import StretchMove
 
-            from hyperwave.inference.flow_proposals import (
-                FlowTrainingCallback,
-                build_pe_flow_proposal,
-                make_flow_distribution_move,
-            )
+            try:
+                from hyperwave.inference.flow_proposals import (
+                    FlowTrainingCallback,
+                    build_pe_flow_proposal,
+                    make_flow_distribution_move,
+                )
+            except ImportError as exc:
+                raise SystemExit(
+                    "--flow requested, but hyperwave.inference.flow_proposals "
+                    "is not available in this source tree."
+                ) from exc
             ordered = [priors[k] for k in priors] + list(noise_priors.values())
             name_list = list(priors.keys())
             periodic_idx = [name_list.index(n) for n in PERIODIC]

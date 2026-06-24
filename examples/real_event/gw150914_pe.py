@@ -9,8 +9,6 @@ comparison. There is no injected truth — this is the real signal.
     python examples/real_event/gw150914_pe.py --sampler pocomc
     python examples/real_event/gw150914_pe.py --sampler both     # run both, report times
     python examples/real_event/gw150914_pe.py --setup-only       # download + 1 likelihood eval
-
-See ``examples/clusters/gw150914_pe.slurm`` for the cluster submission.
 """
 
 from __future__ import annotations

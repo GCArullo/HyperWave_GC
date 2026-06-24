@@ -12,6 +12,15 @@ from __future__ import annotations
 from .base import WaveformBackend, normalize_intrinsic_batch
 from .lal_backend import LALWaveform
 from .template import DEFAULT_BBH_PARAMETERS, Template, component_masses
+
+
+def _missing_wavelet_support(*args, **kwargs):
+    raise ImportError(
+        "Wavelet reconstruction support is unavailable because "
+        "hyperwave.detectors.waveforms.wavelets is missing."
+    )
+
+
 try:
     from .wavelets import (
         EXTRINSIC_PARAMETERS,
@@ -25,9 +34,9 @@ try:
     )
 except ImportError:
     EXTRINSIC_PARAMETERS = WAVELET_PARAMETERS = None
-    WaveletTemplate = None
-    amplitude_from_snr = ellipticity_from_ecc = morlet_gabor_fd = None
-    network_optimal_snr = snr_from_amplitude = None
+    WaveletTemplate = _missing_wavelet_support
+    amplitude_from_snr = ellipticity_from_ecc = morlet_gabor_fd = _missing_wavelet_support
+    network_optimal_snr = snr_from_amplitude = _missing_wavelet_support
 
 __all__ = [
     "Template",

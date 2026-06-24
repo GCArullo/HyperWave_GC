@@ -14,24 +14,17 @@ is generated in one bbhx/GBGPU call per likelihood evaluation.
 
 ## Massive black-hole binaries (SMBHB, bbhx)
 
-```bash
-python examples/lisa/smbhb_bbhx_pe.py --sampler both --quick   # eryn + pocomc timing
-python examples/lisa/smbhb_bbhx_pe.py --sampler eryn --steps 40000
-```
-
 11 source parameters + hyperbolic shape parameters, A/E channels, PhenomD
-(2,2). The example calibrates the analytic PSD stub to a target SNR
-(`--target-snr`).
+(2,2). The current source tree contains the bridge code, but does not bundle a
+standalone SMBHB driver script.
 
 ## Galactic binaries (UCB, GBGPU)
 
-```bash
-python examples/lisa/ucb_gbgpu_pe.py --sampler eryn --steps 40000
-```
-
-GBGPU returns each source's narrow band; the example scatters evaluations onto
-a fixed global grid (window centred on the injected `f0`, `df = 1/Tobs`) so the
-likelihood residual is well defined. 8 sampled parameters; `fddot` static.
+GBGPU returns each source's narrow band; a UCB driver should scatter
+evaluations onto a fixed global grid (window centred on the injected `f0`,
+`df = 1/Tobs`) so the likelihood residual is well defined. The current source
+tree contains the bridge code, but does not bundle a standalone UCB driver
+script.
 
 ## Building the LISA stack
 
@@ -42,8 +35,8 @@ likelihood residual is well defined. 8 sampled parameters; `fddot` static.
     packages, ~15 min) is in `ENVIRONMENT.md` at the repository root.
 
 `gbgpu` 1.1.3 from PyPI works where the CPU has AVX-512 (Intel Skylake) or via
-its CUDA path; its modern (`master`) API requires a migration tracked in
-`TODO.md`.
+its CUDA path; its modern (`master`) API requires a small adapter update before
+use with the bridge.
 
 ## Custom generators
 

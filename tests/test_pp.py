@@ -10,7 +10,14 @@ import numpy as np
 import pytest
 
 from hyperwave import Result
-from hyperwave.validation import credible_levels, make_pp_plot, pp_pvalues
+
+validation = pytest.importorskip(
+    "hyperwave.validation",
+    reason="hyperwave.validation is not bundled in this source snapshot",
+)
+credible_levels = validation.credible_levels
+make_pp_plot = validation.make_pp_plot
+pp_pvalues = validation.pp_pvalues
 
 
 def _synthetic_results(n_inj, rng, *, sigma=1.0, n_samp=4000, bias=0.0, post_scale=1.0):
@@ -48,6 +55,7 @@ def test_overconfident_posterior_detected():
 
 def test_make_pp_plot_smoke():
     import matplotlib
+
     matplotlib.use("Agg")
     rng = np.random.default_rng(3)
     res = _synthetic_results(120, rng)

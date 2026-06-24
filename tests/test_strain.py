@@ -17,6 +17,12 @@ def test_nfft_infft_roundtrip():
     np.testing.assert_allclose(infft(fd, fs), td, atol=1e-30)
 
 
+def test_nfft_infft_roundtrip_odd_length():
+    td = np.arange(5.0)
+    fd, _ = nfft(td, sampling_frequency=10.0)
+    np.testing.assert_allclose(infft(fd, sampling_frequency=10.0), td)
+
+
 @requires_bilby
 def test_windowed_fd_matches_bilby():
     import bilby

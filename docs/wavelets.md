@@ -6,8 +6,7 @@ is itself sampled, an SNR prior supplies the Occam penalty, and an optional
 extrinsic branch samples the sky position ($\mathrm{ra}$, $\mathrm{dec}$,
 $\psi$, ellipticity).
 
-```bash
-python examples/bbh_wavelet_reconstruction.py \
-    --proposal mffisher --sample-sky \
-    --nwalkers 50 --ntemps 10 --nsteps 30000 --burn 10000 --device gpu
-```
+The current source tree contains the likelihood-side interface, but does not
+bundle the wavelet template/proposal implementation or a standalone
+reconstruction driver script. Missing wavelet helpers raise `ImportError` with
+an explicit message when called.

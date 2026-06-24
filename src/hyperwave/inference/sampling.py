@@ -182,16 +182,9 @@ class LVKinference:
         """ A silly function to get the clean parameter chains out from Eryn. 
             In the future it will not be needed.
         """
-        naninds    = np.logical_not(np.isnan(coords[:, temp, :, :, 0].flatten()))
-        print(np.sum(naninds))
-        samples_in = np.zeros((coords[:, temp, :, :, 0].flatten()[naninds].shape[0], ndim))  # init the chains to plot
-        # get the samples to plot
-        for d in range(ndim):
-            givenparam = coords[:, temp, :, :, d].flatten()
-            samples_in[:, d] = givenparam[
-                np.logical_not(np.isnan(givenparam))
-            ]  # Discard the NaNs, each time they change the shape of the samples_in
-        return samples_in
+        samples = coords[:, temp, :, :, :ndim].reshape(-1, ndim)
+        valid = np.logical_not(np.isnan(samples).any(axis=1))
+        return samples[valid]
 
     def get_result(self, injection=None, parameter_names=None, thin=2):
         """Return the posterior as a :class:`hyperwave.Result`.
@@ -240,7 +233,9 @@ class LVKinference:
         sampler.run(n_total=n_total)
         samples, logl, logp = sampler.posterior(resample=True)
 
-        out_file = f"{self.common['save_dir']}/chains/POCO_{self.common['TAG']}_pocomc.pkl"
+        chains_dir = os.path.join(self.common["save_dir"], "chains")
+        os.makedirs(chains_dir, exist_ok=True)
+        out_file = os.path.join(chains_dir, f"POCO_{self.common['TAG']}_pocomc.pkl")
         with open(out_file, "wb") as f:
             pickle.dump({'samples': samples, 'logl': logl, 'logp': logp}, f)
 
@@ -379,16 +374,9 @@ class DataInference:
         """ A silly function to get the clean parameter chains out from Eryn. 
             In the future it will not be needed.
         """
-        naninds    = np.logical_not(np.isnan(coords[:, temp, :, :, 0].flatten()))
-        print(np.sum(naninds))
-        samples_in = np.zeros((coords[:, temp, :, :, 0].flatten()[naninds].shape[0], ndim))  # init the chains to plot
-        # get the samples to plot
-        for d in range(ndim):
-            givenparam = coords[:, temp, :, :, d].flatten()
-            samples_in[:, d] = givenparam[
-                np.logical_not(np.isnan(givenparam))
-            ]  # Discard the NaNs, each time they change the shape of the samples_in
-        return samples_in
+        samples = coords[:, temp, :, :, :ndim].reshape(-1, ndim)
+        valid = np.logical_not(np.isnan(samples).any(axis=1))
+        return samples[valid]
 
     def _run_pocomc(self):
         """Run inference using the POCOMC sampler."""

@@ -17,26 +17,12 @@ result.corner();  result.save("run.h5")
 
 ## PP machinery
 
-```python
-from hyperwave.validation import credible_levels, pp_pvalues, make_pp_plot
-
-levels = credible_levels(results)          # (n_runs, n_params)
-combined_p, per_param = pp_pvalues(levels, names)   # KS per param + Fisher combine
-fig = make_pp_plot(results)                # with binomial confidence bands
-```
-
-The unit tests demonstrate the machinery's sensitivity: a calibrated pipeline
-passes (combined `p > 0.05`), while biased or overconfident posteriors are
-detected (`p < 0.01`).
+The standalone PP-test helper module is not bundled in this source snapshot.
+Use `Result.credible_level(...)` to compute per-run credible levels, then pass
+those arrays to your project-level PP-test implementation.
 
 ## Campaigns
 
-`hyperwave.validation.run_pp_campaign` loops injections, saves each `Result`,
-and writes `pp_summary.json` + `pp_plot.png`; it is resumable (skips completed
-injections). A concrete fast campaign lives in `examples/validation/pp_fast.py`
-with a cluster runner in `examples/clusters/pp_fast.slurm`.
-
-!!! note
-    The full 100-injection hyperbolic-likelihood campaign is pending the
-    GPU/parallel throughput work (`TODO.md`) — the heterodyne likelihood and
-    ml4gw GPU waveforms are the levers that make it cheap.
+Campaign orchestration is also left to downstream analysis scripts in this
+snapshot. The heterodyne likelihood and ml4gw GPU waveforms are the main levers
+for making large PP campaigns cheaper.

@@ -36,7 +36,7 @@ class LogLike(BaseLikelihood):
             self.yy_noise = self._get_yy_noise()
         else:
             self._full_channels = self._nchannels
-            self.yy_noise = self.data**2
+            self.yy_noise = self._get_td_yy_noise()
 
         self._d = self._full_channels
         self._lam = (self._d + 1) / 2
@@ -53,11 +53,16 @@ class LogLike(BaseLikelihood):
 
     def _get_yy_noise(self):
         yy = self.data.conj() * self.data
-        if self._nchannels == 1:
-            syy = 4.0 * self.df * yy
-        else:
-            syy = 4.0 * self.df * self.xp.sum(yy, axis=0)
+        if yy.ndim > 1:
+            yy = self.xp.sum(yy, axis=0)
+        syy = 4.0 * self.df * yy
         return self.xp.abs(syy)
+
+    def _get_td_yy_noise(self):
+        yy = self.data**2
+        if yy.ndim > 1:
+            yy = self.xp.sum(yy, axis=0)
+        return self.xp.abs(yy)
 
     def hyperbolic1D(self, theta):
         theta = self._ensure_2d(theta)

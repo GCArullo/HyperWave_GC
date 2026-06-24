@@ -81,7 +81,9 @@ samples = np.array([theta, theta])
 print(likelihood.gaussian(samples))
 ```
 
-Drive a full run with the `LVKinference` helper (Eryn or pocoMC) using `bilby` priors; see `examples/bbh_noise_inference_eryn.py`.
+Drive a full run with the `LVKinference` helper (Eryn or pocoMC) using `bilby`
+priors; see `examples/pe_fast/bbh_fast_pe.py` and
+`examples/pe_full/bbh_full_pe.py`.
 
 ## Waveform backends
 

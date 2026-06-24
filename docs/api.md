@@ -15,15 +15,15 @@
 ::: hyperwave.inference.LVKinference
 
 The wavelet-proposal API (`MatchedFilterBirth`, `build_mf_birth`,
-`build_guided_birth`, …) is pending the upload of
-`src/hyperwave/inference/wavelet_proposals.py`.
+`build_guided_birth`, ...) is optional and raises `ImportError` with a clear
+message when the implementation module is unavailable.
 
 ## Results
 
 ::: hyperwave.result.Result
 
-PP-test validation API (`hyperwave.validation.pp`) is pending the upload of
-`src/hyperwave/validation/`.
+The PP-test validation helper module is not bundled in this source snapshot.
+Use `Result.credible_level(...)` for per-run credible levels.
 
 ## Detectors & templates
 

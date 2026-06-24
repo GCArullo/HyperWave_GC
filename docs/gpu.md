@@ -30,10 +30,10 @@ template = GW(noise, approximant="IMRPhenomPv2",
 !!! note "Convention status"
     HyperWave corrects ml4gw's coalescence-time and phase conventions to match
     the LAL backend exactly (overlap 1.0) for **zero and aligned-positive
-    spins**. Two known residual issues are tracked in `TODO.md`: a constant
-    phase offset for anti-aligned/precessing systems (couples to `phi_jl`) and
-    a high-frequency amplitude rolloff above ~512 Hz. PE in the
-    zero/aligned-spin configuration is verified unbiased.
+    spins**. Known residual issues are a constant phase offset for
+    anti-aligned/precessing systems (couples to `phi_jl`) and a high-frequency
+    amplitude rolloff above ~512 Hz. PE in the zero/aligned-spin configuration
+    is verified unbiased.
 
 ### LISA: bbhx and GBGPU
 
