@@ -6,18 +6,16 @@
 
 HyperWave is a Python package for robust gravitational-wave inference. It pairs
 hyperbolic (heavy-tailed) likelihoods for non-Gaussian, glitch-prone data with
-batched, GPU-ready waveform generation and a waveform-agnostic wavelet
-reconstruction. It provides detector and noise utilities, frequency-domain
-likelihoods, sampler drivers, and plotting helpers, and runs on top of
-`lalsuite`, `gwpy`, `pocoMC` and `eryn`.
+batched, GPU-ready waveform generation. It provides detector and noise
+utilities, frequency-domain likelihoods, sampler drivers, and plotting helpers,
+and runs on top of `lalsuite`, `gwpy`, `pocoMC` and `eryn`.
 
 ## Highlights
 
 - Hyperbolic and Gaussian likelihoods for parameter estimation that tolerate
   non-Gaussian noise and glitches.
 - Batched waveform generation: a whole population of parameter sets is evaluated per call. The default backend calls `lalsimulation` directly and reproduces `bilby` waveforms to machine precision; an optional `ml4gw` backend generates batches with PyTorch.
-- Waveform-agnostic reconstruction with a variable number of Morlet-Gabor wavelets, sampled with reversible-jump MCMC.
-- GPU acceleration through CuPy for the likelihood algebra and the wavelet model, with a NumPy fallback when no GPU is present.
+- GPU acceleration through CuPy for the likelihood algebra, with a NumPy fallback when no GPU is present.
 - Lean, `lal`-backed detector classes (geometry, antenna response, PSDs, strain FFTs); `bilby` is used only for its prior distributions.
 
 ## Installation
@@ -43,7 +41,7 @@ Optional extras:
 | --- | --- | --- |
 | `.[plot]` | `corner`, `chainconsumer` | corner/posterior plots |
 | `.[sampling]` | `pocomc` | preconditioned Monte Carlo sampler |
-| `.[gpu]` | `cupy-cuda12x` | CuPy likelihood/wavelet algebra |
+| `.[gpu]` | `cupy-cuda12x` | CuPy likelihood algebra |
 | `.[ml4gw]` | `ml4gw` | PyTorch waveform backend (Python < 3.13) |
 | `.[lisa]` | `lisaanalysistools` | LISA A/E/T helpers |
 | `.[dev]` | build/test/lint tooling | development |
@@ -80,35 +78,10 @@ likelihood = GWLikelihoods(data=data, f=f, ifos_list=["H1", "L1"],
 
 # One template call evaluates the whole population of samples at once.
 samples = np.array([theta, theta])
-print(likelihood.whittle(samples))
+print(likelihood.gaussian(samples))
 ```
 
 Drive a full run with the `LVKinference` helper (Eryn or pocoMC) using `bilby` priors; see `examples/bbh_noise_inference_eryn.py`.
-
-## Wavelet reconstruction
-
-HyperWave includes a waveform-agnostic reconstruction that models a signal as a variable-size sum of Morlet-Gabor wavelets and samples the number of wavelets with reversible-jump MCMC. The sky position (right ascension, declination, polarization, ellipticity) is sampled jointly.
-
-`examples/bbh_wavelet_reconstruction.py` runs the full pipeline — generate noise, inject a compact-binary signal, reconstruct it with wavelets, and report timing:
-
-```bash
-# CPU
-python examples/bbh_wavelet_reconstruction.py --device cpu --nsteps 1000
-
-# GPU (CuPy)
-python examples/bbh_wavelet_reconstruction.py --device gpu --nsteps 2000
-```
-
-The wavelet model, priors, and likelihood are reusable building blocks:
-
-```python
-from hyperwave.detectors.waveforms import WaveletTemplate
-from hyperwave.inference import build_wavelet_priors
-from hyperwave.likelihoods import WaveletLikelihood
-```
-
-A Slurm submission script for GPU nodes is provided at
-`examples/clusters/bbh_wavelet_reconstruction_gpu.slurm`.
 
 ## Waveform backends
 
@@ -119,7 +92,10 @@ template = GW(noise, approximant="IMRPhenomD",   waveform_backend="ml4gw")  # op
 
 ## GPU acceleration
 
-The likelihood algebra (`GWLikelihoods(..., gpu=True)`) and the wavelet model (`WaveletTemplate(..., gpu=True)`) run on CuPy when a CUDA device is available and fall back to NumPy otherwise. Waveform and detector generation stay on CPU; the array-heavy residual and inner-product computations move to the GPU.
+The likelihood algebra (`GWLikelihoods(..., gpu=True)`) runs on CuPy when a CUDA
+device is available and falls back to NumPy otherwise. Waveform and detector
+generation stay on CPU; the array-heavy residual and inner-product computations
+move to the GPU.
 
 ```python
 from hyperwave import gpu_backend_available, torch_cuda_available
@@ -130,13 +106,12 @@ print(gpu_backend_available(), torch_cuda_available())
 
 ```python
 from hyperwave import (
-    GWLikelihoods, WaveletLikelihood, loglike,   # likelihoods
+    GWLikelihoods, loglike,                      # likelihoods
     DetectorNoise, GW,                           # LVK data and waveform template
     Detector, PowerSpectralDensity, StrainData,  # detector building blocks
     Interferometer, InterferometerList,
-    Template, WaveletTemplate,                   # batched waveform / wavelet models
+    Template,                                    # batched waveform model
     LVKinference, DataInference,                 # sampler drivers
-    build_wavelet_priors,
     gpu_backend_available, torch_cuda_available,
 )
 from hyperwave.detectors.waveforms import LALWaveform, ML4GWWaveform
@@ -146,9 +121,9 @@ from hyperwave.detectors.waveforms import LALWaveform, ML4GWWaveform
 
 ```
 src/hyperwave/
-  likelihoods/   hyperbolic and Gaussian likelihoods, wavelet likelihood
+  likelihoods/   hyperbolic and Gaussian likelihoods
   detectors/     geometry, psd, strain, data  (lal-backed building blocks)
-    waveforms/   waveform backends, batched CBC template, wavelet model
+    waveforms/   waveform backends, batched CBC template
     lvk/         DetectorNoise / GW (LVK-facing classes)
     lisa/        LISA A/E/T helpers
   inference/     Eryn / pocoMC drivers, priors, flow proposals
