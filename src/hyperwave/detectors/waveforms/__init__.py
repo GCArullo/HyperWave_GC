@@ -12,16 +12,22 @@ from __future__ import annotations
 from .base import WaveformBackend, normalize_intrinsic_batch
 from .lal_backend import LALWaveform
 from .template import DEFAULT_BBH_PARAMETERS, Template, component_masses
-from .wavelets import (
-    EXTRINSIC_PARAMETERS,
-    WAVELET_PARAMETERS,
-    WaveletTemplate,
-    amplitude_from_snr,
-    ellipticity_from_ecc,
-    morlet_gabor_fd,
-    network_optimal_snr,
-    snr_from_amplitude,
-)
+try:
+    from .wavelets import (
+        EXTRINSIC_PARAMETERS,
+        WAVELET_PARAMETERS,
+        WaveletTemplate,
+        amplitude_from_snr,
+        ellipticity_from_ecc,
+        morlet_gabor_fd,
+        network_optimal_snr,
+        snr_from_amplitude,
+    )
+except ImportError:
+    EXTRINSIC_PARAMETERS = WAVELET_PARAMETERS = None
+    WaveletTemplate = None
+    amplitude_from_snr = ellipticity_from_ecc = morlet_gabor_fd = None
+    network_optimal_snr = snr_from_amplitude = None
 
 __all__ = [
     "Template",
