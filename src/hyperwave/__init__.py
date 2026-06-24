@@ -12,9 +12,12 @@ except metadata.PackageNotFoundError:
 from . import detectors, plots
 from .detectors import (
     Detector,
+    CubicSpline,
     Interferometer,
     InterferometerList,
+    Precomputed,
     PowerSpectralDensity,
+    Recalibrate,
     StrainData,
     Template,
     WaveletTemplate,
@@ -79,6 +82,9 @@ __all__ = [
     "StrainData",
     "Interferometer",
     "InterferometerList",
+    "Recalibrate",
+    "CubicSpline",
+    "Precomputed",
     "Template",
     "WaveletTemplate",
     "DetectorNoise",
