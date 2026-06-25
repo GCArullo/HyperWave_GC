@@ -162,6 +162,66 @@ def test_gaussian_calibration_marginalization_matches_explicit_average():
     np.testing.assert_allclose(out, expected, rtol=1e-14, atol=1e-14)
 
 
+def test_gaussian_calibration_marginalization_uses_joint_curve_index():
+    class FakeTemplate:
+        parameters = ["amplitude"]
+
+        def make_injections_to_ifo_batch(self, theta):
+            theta = np.atleast_2d(theta)
+            base = np.array([
+                [1.0 + 0.5j, -0.2 + 0.3j],
+                [0.4 - 0.1j, 0.2 + 0.6j],
+            ])
+            return theta[:, 0, None, None] * base[None, :, :]
+
+    f = np.array([20.0, 21.0])
+    data = np.array([
+        [1.2 + 0.1j, -0.1 + 0.4j],
+        [0.3 - 0.2j, 0.5 + 0.1j],
+    ])
+    psd = np.array([[1.0, 2.0], [1.5, 0.8]])
+    draws = {
+        "H1": np.array([
+            [1.0 + 0.0j, 1.0 + 0.0j],
+            [1.1 + 0.1j, 0.8 - 0.2j],
+            [0.9 - 0.1j, 1.2 + 0.1j],
+        ]),
+        "L1": np.array([
+            [0.9 + 0.0j, 1.1 + 0.0j],
+            [1.0 - 0.2j, 0.7 + 0.1j],
+            [1.2 + 0.1j, 0.8 - 0.1j],
+        ]),
+    }
+    theta = np.array([[0.9], [1.2]])
+
+    likelihood = GWLikelihoods(
+        data=data,
+        f=f,
+        ifos_list=["H1", "L1"],
+        noise=psd,
+        template=FakeTemplate(),
+        nsegs=1,
+        calibration_marginalization=True,
+        calibration_draws=draws,
+        calibration_chunk_size=1,
+    )
+
+    out = likelihood.gaussian(theta)
+    signal = FakeTemplate().make_injections_to_ifo_batch(theta)
+    expected = []
+    for ii in range(theta.shape[0]):
+        per_draw = []
+        for kk in range(draws["H1"].shape[0]):
+            yy = 0.0
+            for ifo, name in enumerate(["H1", "L1"]):
+                residual = data[ifo] - draws[name][kk] * signal[ii, ifo]
+                yy += np.sum(np.abs(residual) ** 2 / psd[ifo])
+            per_draw.append(-0.5 * 4.0 * (f[1] - f[0]) * yy)
+        expected.append(logsumexp(per_draw) - np.log(draws["H1"].shape[0]))
+
+    np.testing.assert_allclose(out, expected, rtol=1e-14, atol=1e-14)
+
+
 def test_hyperbolic_calibration_marginalization_matches_explicit_average():
     class FakeTemplate:
         parameters = ["amplitude"]

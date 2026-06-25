@@ -166,9 +166,11 @@ class GWLikelihoods(BaseLikelihood):
                 raise ValueError("All detectors must use the same number of calibration curves.")
             arrays.append(draws)
 
+        if n_curves is None or n_curves < 1:
+            raise ValueError("At least one calibration curve is required.")
+
         self.number_of_response_curves = int(n_curves)
         self.calibration_draws = self._backend.asarray(np.stack(arrays, axis=0))
-        self._calibration_log_norm = np.log(self.number_of_response_curves)
 
     def _signal_batch(self, p):
         return self._backend.asarray(self._template.make_injections_to_ifo_batch(p))
@@ -178,22 +180,26 @@ class GWLikelihoods(BaseLikelihood):
         n_curves = self.number_of_response_curves
         for start in range(0, n_curves, chunk):
             stop = min(start + chunk, n_curves)
-            calibration = self.calibration_draws[:, start:stop, :]
-            residual = (
-                self.data[None, :, None, :]
-                - signal[:, :, None, :] * calibration[None, :, :, :]
-            )
-            yy = (residual.conj() * residual) / self.psd[None, :, None, :]
-            syy = self.df * self.xp.sum(yy, axis=1)
-            yield 4.0 * self.xp.real(syy)
-
-    def _logmeanexp_draws(self, logl):
-        max_logl = self.xp.max(logl, axis=1, keepdims=True)
-        centered = self.xp.exp(logl - max_logl)
-        return (max_logl[:, 0] + self.xp.log(self.xp.mean(centered, axis=1))).real
+            yy = self._backend.zeros((signal.shape[0], stop - start, self._f.size), dtype=float)
+            for ifo in range(self._nchannels):
+                calibration = self.calibration_draws[ifo, start:stop, :]
+                residual = (
+                    self.data[ifo][None, None, :]
+                    - signal[:, ifo, None, :] * calibration[None, :, :]
+                )
+                yy += self.xp.real(residual.conj() * residual) / self.psd[ifo][None, None, :]
+            yield 4.0 * self.df * yy
 
     def _combine_calibration_logl(self, chunks):
-        return self._logmeanexp_draws(self.xp.concatenate(chunks, axis=1))
+        running = None
+        n_draws = 0
+        for logl in chunks:
+            n_draws += int(logl.shape[1])
+            block = self._logsumexp(logl, axis=1)
+            running = block if running is None else self.xp.logaddexp(running, block)
+        if running is None or n_draws < 1:
+            raise ValueError("At least one calibration likelihood chunk is required.")
+        return (running - np.log(n_draws)).real
 
     def inner_residual(self, theta):
         signal = self._template.make_injections_to_ifo(np.asarray(theta))
