@@ -527,10 +527,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __init__
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_batch" class="md-nav__link">
     <span class="md-ellipsis">
       
         inner_residual_batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_per_ifo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_residual_per_ifo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_batch_per_ifo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_residual_batch_per_ifo
       
     </span>
   </a>
@@ -1084,10 +1117,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.__init__" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        __init__
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_batch" class="md-nav__link">
     <span class="md-ellipsis">
       
         inner_residual_batch
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_per_ifo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_residual_per_ifo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hyperwave.likelihoods.GWLikelihoods.inner_residual_batch_per_ifo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        inner_residual_batch_per_ifo
       
     </span>
   </a>
@@ -1648,6 +1714,63 @@ residual and likelihood algebra to CuPy while keeping a safe NumPy fallback.</p>
 <div class="doc doc-object doc-function">
 
 
+<h2 id="hyperwave.likelihoods.GWLikelihoods.__init__" class="doc doc-heading">
+            <code class="highlight language-python"><span class="fm">__init__</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">ifos_list</span><span class="p">,</span> <span class="n">noise</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">ddims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">nsegs</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">gpu</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">infs</span><span class="o">=-</span><span class="mf">1e+300</span><span class="p">,</span> <span class="n">cpu_cores</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">calibration_bank</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cal_chunk</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">cal_n_nodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cal_minimum_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cal_maximum_frequency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shape_per_detector</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>shape_per_detector</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True, the hyperbolic shape parameters α and δ (or α and the
+ratio δ/α) are sampled <em>per detector</em> rather than shared across
+the detector network. The combined-residual likelihood is replaced
+by a sum of single-detector MVH likelihoods, so each interferometer
+sees its own non-Gaussian noise scale. Requires <code>ddims=True</code> and
+is currently supported only on the non-calibration paths
+(<code>hyperbolic</code> and <code>hyperbolic_classic</code>); the <code>*_calmarg</code> and
+<code>*_calsample</code> variants raise <code>NotImplementedError</code> when this is
+set. The added parameter count is
+<code>2 * nsegs * n_ifo</code> instead of <code>2 * nsegs</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
 <h2 id="hyperwave.likelihoods.GWLikelihoods.inner_residual_batch" class="doc doc-heading">
             <code class="highlight language-python"><span class="n">inner_residual_batch</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></code>
 
@@ -1659,6 +1782,47 @@ residual and likelihood algebra to CuPy while keeping a safe NumPy fallback.</p>
         <p>Vectorised noise-weighted residual for a batch <code>p</code> of shape <code>(N, wfdims)</code>.</p>
 <p>Returns <code>(N, n_freq)</code> = <code>4 Re[df * sum_ifo conj(r) r / Sn]</code> with one
 batched template call (no per-walker loop).</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.GWLikelihoods.inner_residual_per_ifo" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">inner_residual_per_ifo</span><span class="p">(</span><span class="n">theta</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Single-walker noise-weighted residual, <strong>kept per-detector</strong>.</p>
+<p>Same math as :meth:<code>inner_residual</code> but does NOT sum the <code>ifo</code> axis;
+returns shape <code>(n_ifo, n_freq)</code> = <code>4 Re[df * conj(r) r / Sn]</code>.
+Used by :meth:<code>hyperbolic</code> / :meth:<code>hyperbolic_classic</code> when
+<code>shape_per_detector=True</code>.</p>
+
+
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="hyperwave.likelihoods.GWLikelihoods.inner_residual_batch_per_ifo" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">inner_residual_batch_per_ifo</span><span class="p">(</span><span class="n">p</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Batched per-detector residual; returns shape <code>(N, n_ifo, n_freq)</code>.</p>
+<p>Same as :meth:<code>inner_residual_batch</code> but with the detector axis kept.</p>
 
 
     </div>
