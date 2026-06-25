@@ -92,10 +92,16 @@ def main():
           f"over spreads of {np.max(np.abs(g)):.1f}")
 
     # --- 2. speed ---
-    batch = np.tile(theta_ref, (64, 1)); batch[:, 0] += rng.uniform(-0.02, 0.02, 64)
-    exact.gaussian(batch[:2]); het.logl(batch[:2])  # warm-up
-    t0 = time.perf_counter(); exact.gaussian(batch); t_full = time.perf_counter() - t0
-    t0 = time.perf_counter(); het.logl(batch); t_het = time.perf_counter() - t0
+    batch = np.tile(theta_ref, (64, 1))
+    batch[:, 0] += rng.uniform(-0.02, 0.02, 64)
+    exact.gaussian(batch[:2])
+    het.logl(batch[:2])  # warm-up
+    t0 = time.perf_counter()
+    exact.gaussian(batch)
+    t_full = time.perf_counter() - t0
+    t0 = time.perf_counter()
+    het.logl(batch)
+    t_het = time.perf_counter() - t0
     print(f"> speed: full {t_full/64*1e3:.2f} ms/eval | heterodyne {t_het/64*1e3:.2f} ms/eval "
           f"| speedup {t_full/t_het:.1f}x")
 
