@@ -23,6 +23,7 @@ run with `vectorize=True` end to end.
 | **Wavelet reconstruction** | Morlet–Gabor RJMCMC with Fisher, half-cycle, sky-ring and matched-filter birth proposals |
 | **LISA** | A/E/T bridge to lisatools-style data products; end-to-end SMBHB and UCB examples |
 | **Validation** | `Result` objects, PP-test machinery, calibrated/biased/overconfident detection tests |
+| **Bilby boundary** | bilby priors plus LVK/bilby calibration response-curve file readers; waveform projection and likelihood evaluation stay HyperWave-native and batched |
 
 ## Install
 

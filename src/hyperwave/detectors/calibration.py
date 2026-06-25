@@ -12,25 +12,12 @@ still accepting bilby-like objects with ``get_calibration_factor``.
 from __future__ import annotations
 
 import numpy as np
-from scipy.interpolate import interp1d
-
-
-def _check_calibration_correction_type(correction_type):
-    if correction_type is None:
-        correction_type = "data"
-    correction_type = str(correction_type).lower()
-    if correction_type not in {"data", "template"}:
-        raise ValueError(
-            "Calibration correction should be one of 'data' or "
-            f"'template', found {correction_type!r}."
-        )
-    return correction_type
 
 
 def read_calibration_file(
     filename, frequency_array, number_of_response_curves, starting_index=0, correction_type=None
 ):
-    """Read bilby/LVK-style HDF5 calibration response curves.
+    """Read bilby/LVK-style HDF5 calibration response curves via bilby.
 
     The file must contain ``deltaR/draws_amp_rel``, ``deltaR/draws_phase`` and
     ``deltaR/freq``.  Curves are interpolated onto ``frequency_array`` and are
@@ -38,32 +25,15 @@ def read_calibration_file(
     products are usually data-side corrections, so ``correction_type='data'``
     inverts them.
     """
-    import h5py
+    from bilby.gw.detector.calibration import read_calibration_file as bilby_read
 
-    correction_type = _check_calibration_correction_type(correction_type)
-    with h5py.File(filename, "r") as calibration_file:
-        try:
-            delta_r = calibration_file["deltaR"]
-        except KeyError as exc:
-            raise KeyError(f"File {filename} does not contain 'deltaR' group.") from exc
-
-        start = int(starting_index)
-        stop = start + int(number_of_response_curves)
-        amp = delta_r["draws_amp_rel"][start:stop]
-        phase = delta_r["draws_phase"][start:stop]
-        frequencies = delta_r["freq"][:]
-
-        parameter_draws = None
-        if "CalParams" in calibration_file and "table" in calibration_file["CalParams"]:
-            parameter_draws = np.array(calibration_file["CalParams"]["table"])
-
-    curves = amp * np.exp(1j * phase)
-    curves = interp1d(
-        frequencies, curves, kind="cubic", bounds_error=False, fill_value=1
-    )(frequency_array)
-    if correction_type == "data":
-        curves = 1.0 / curves
-    return curves, parameter_draws
+    return bilby_read(
+        filename=filename,
+        frequency_array=frequency_array,
+        number_of_response_curves=number_of_response_curves,
+        starting_index=starting_index,
+        correction_type=correction_type,
+    )
 
 
 def _batch_calibration_factor(model, frequency_array, params, n):
