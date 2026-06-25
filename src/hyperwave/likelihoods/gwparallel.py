@@ -39,6 +39,7 @@ class GWLikelihoods(BaseLikelihood):
         calibration_correction_type=None,
         calibration_chunk_size=64,
         detector_dependent_noise=False,
+        detector_noise_models=None,
     ):
         self._init_backend(gpu=gpu)
 
@@ -61,6 +62,7 @@ class GWLikelihoods(BaseLikelihood):
         self.data = self._backend.asarray(data)
         self.psd = self._backend.asarray(noise)
         self.detector_dependent_noise = bool(detector_dependent_noise)
+        self._set_detector_noise_models(detector_noise_models)
 
         self._d = 2 * self._nchannels
         self._lam = (self._d + 1) / 2
@@ -75,8 +77,8 @@ class GWLikelihoods(BaseLikelihood):
         self._logfreq = np.log10(self._f)
         alpha_dims = self._nsegs if self._ddims else 1
         if self.detector_dependent_noise:
-            alpha_dims *= self._nchannels
-        delta_dims = self._nsegs * self._nchannels if self.detector_dependent_noise else self._nsegs
+            alpha_dims *= self._nhyperbolic_detectors
+        delta_dims = self._nsegs * self._nhyperbolic_detectors if self.detector_dependent_noise else self._nsegs
         self._hdims = self._wfdims + alpha_dims
         self._ndims = self._hdims + delta_dims
         self.num_jobs = 1 if self._use_gpu else int(cpu_cores)
@@ -99,6 +101,34 @@ class GWLikelihoods(BaseLikelihood):
                 correction_type=calibration_correction_type,
             )
 
+    def _set_detector_noise_models(self, detector_noise_models):
+        if detector_noise_models is None:
+            models = ["hyperbolic"] * self._nchannels
+        else:
+            if not self.detector_dependent_noise:
+                raise ValueError("detector_noise_models requires detector_dependent_noise=True.")
+            if len(detector_noise_models) != self._nchannels:
+                raise ValueError("detector_noise_models must match ifos_list.")
+            aliases = {
+                "gaussian": "gaussian",
+                "normal": "gaussian",
+                "hyperbolic": "hyperbolic",
+                "hyp": "hyperbolic",
+            }
+            models = []
+            for model in detector_noise_models:
+                key = str(model).lower()
+                if key not in aliases:
+                    raise ValueError("detector_noise_models entries must be 'gaussian' or 'hyperbolic'.")
+                models.append(aliases[key])
+
+        self.detector_noise_models = tuple(models)
+        self._hyperbolic_detectors = tuple(
+            i for i, model in enumerate(self.detector_noise_models)
+            if model == "hyperbolic"
+        )
+        self._nhyperbolic_detectors = len(self._hyperbolic_detectors)
+
     def _alpha_columns(self, theta):
         alpha = theta[:, self._wfdims:self._hdims]
         if self.detector_dependent_noise:
@@ -115,7 +145,7 @@ class GWLikelihoods(BaseLikelihood):
 
     def _reshape_detector_parameter(self, values, segmented):
         width = self._nsegs if segmented else 1
-        return values.reshape(values.shape[0], self._nchannels, width)
+        return values.reshape(values.shape[0], self._nhyperbolic_detectors, width)
 
     def _get_yy_noise(self):
         return self.inner_product(self.data, self.data, psd=self.psd)
@@ -416,11 +446,17 @@ class GWLikelihoods(BaseLikelihood):
         self.yy = self._get_yy_detector(p=theta[:, : self._wfdims])
 
         likelihood = self.xp.zeros((theta.shape[0], self._nchannels, len(self._segi)))
+        hyp = 0
         for ifo in range(self._nchannels):
             yy_ifo = self.yy[:, ifo, :]
+            if self.detector_noise_models[ifo] == "gaussian":
+                for i, si in enumerate(self._segi):
+                    likelihood[:, ifo, i] = -0.5 * self.xp.sum(yy_ifo[:, si], axis=-1).real
+                continue
+
             for i, si in enumerate(self._segi):
-                alpha_i = alpha[:, ifo, i] if self._ddims else alpha[:, ifo, 0]
-                delta_i = delta[:, ifo, i]
+                alpha_i = alpha[:, hyp, i] if self._ddims else alpha[:, hyp, 0]
+                delta_i = delta[:, hyp, i]
                 alpha_delta_i = alpha_i * delta_i
 
                 log_kappa = self._backend.log_kv(self._detector_lam, alpha_delta_i)
@@ -432,6 +468,7 @@ class GWLikelihoods(BaseLikelihood):
                 term_rest = self._detector_C0 - self.xp.log(2.0 * alpha_i) - log_kappa
 
                 likelihood[:, ifo, i] = self._Nd[i] * (term_lambda + term_rest) - alpha_i * term_sqrt
+            hyp += 1
 
         likelihood = self.xp.nan_to_num(
             self.xp.sum(likelihood, axis=(1, 2)),
@@ -512,11 +549,17 @@ class GWLikelihoods(BaseLikelihood):
             likelihood = self.xp.zeros(
                 (theta.shape[0], yy.shape[2], self._nchannels, len(self._segi))
             )
+            hyp = 0
             for ifo in range(self._nchannels):
                 yy_ifo = yy[:, ifo, :, :]
+                if self.detector_noise_models[ifo] == "gaussian":
+                    for i, si in enumerate(self._segi):
+                        likelihood[:, :, ifo, i] = -0.5 * self.xp.sum(yy_ifo[:, :, si], axis=-1).real
+                    continue
+
                 for i, si in enumerate(self._segi):
-                    alpha_i = alpha[:, ifo, i] if self._ddims else alpha[:, ifo, 0]
-                    delta_i = tail[:, ifo, i] if classic else alpha_i * tail[:, ifo, i]
+                    alpha_i = alpha[:, hyp, i] if self._ddims else alpha[:, hyp, 0]
+                    delta_i = tail[:, hyp, i] if classic else alpha_i * tail[:, hyp, i]
                     alpha_delta_i = alpha_i * delta_i
 
                     log_kappa = self._backend.log_kv(self._detector_lam, alpha_delta_i)
@@ -530,6 +573,7 @@ class GWLikelihoods(BaseLikelihood):
                         self._Nd[i] * (term_lambda + term_rest)[:, None]
                         - alpha_i[:, None] * term_sqrt
                     )
+                hyp += 1
             chunks.append(self.xp.sum(likelihood, axis=(2, 3)))
 
         likelihood = self._combine_calibration_logl(chunks)

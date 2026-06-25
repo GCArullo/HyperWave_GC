@@ -51,6 +51,17 @@ For `ddims=True`, each detector has one `alpha` and one `delta` per segment:
 #           delta_H1_0, delta_H1_1, delta_L1_0, delta_L1_1]
 ```
 
+You can also mix Gaussian and hyperbolic detectors by passing
+`detector_noise_models` alongside `detector_dependent_noise=True`. Only
+detectors marked `"hyperbolic"` receive shape parameters.
+
+```python
+like = GWLikelihoods(..., ifos_list=["H1", "L1"], ddims=False, nsegs=2,
+                     detector_dependent_noise=True,
+                     detector_noise_models=["gaussian", "hyperbolic"])
+# thetas = [signal params, alpha_L1, delta_L1_0, delta_L1_1]
+```
+
 ## Whittle (per-segment noise levels)
 
 The Whittle likelihood with a free log-level per frequency segment — use when

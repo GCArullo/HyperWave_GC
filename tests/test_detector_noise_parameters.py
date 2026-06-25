@@ -170,6 +170,104 @@ def test_detector_dependent_noise_keeps_batched_template_path(detector_problem):
     assert template.single_calls == theta.shape[0]
 
 
+@pytest.mark.parametrize("ddims", [False, True])
+def test_mixed_detector_noise_is_gaussian_plus_hyperbolic(detector_problem, ddims):
+    f, data, psd = detector_problem
+    ifos = ["H1", "L1"]
+    alpha = np.array([[8.0, 5.0]])
+    delta = np.array([[2.0, 0.9]])
+    amplitude = 0.4
+
+    theta = np.concatenate([[amplitude], _detector_parameters(alpha, delta, ddims)])
+    likelihood = GWLikelihoods(
+        data=data,
+        f=f,
+        ifos_list=ifos,
+        noise=psd,
+        template=ToyTemplate(ifos, f),
+        ddims=ddims,
+        nsegs=2,
+        cpu_cores=1,
+        detector_dependent_noise=True,
+        detector_noise_models=["gaussian", "hyperbolic"],
+    )
+
+    gaussian = GWLikelihoods(
+        data=data[:1],
+        f=f,
+        ifos_list=["H1"],
+        noise=psd[:1],
+        template=ToyTemplate(["H1"], f),
+        ddims=ddims,
+        nsegs=2,
+        cpu_cores=1,
+    )
+    hyperbolic = GWLikelihoods(
+        data=data[1:],
+        f=f,
+        ifos_list=["L1"],
+        noise=psd[1:],
+        template=ToyTemplate(["L1"], f),
+        ddims=ddims,
+        nsegs=2,
+        cpu_cores=1,
+    )
+    expected = (
+        float(gaussian.gaussian([amplitude]))
+        + float(hyperbolic.hyperbolic_classic(theta))
+    )
+
+    assert np.isclose(likelihood.hyperbolic_classic(theta), expected)
+
+
+def test_mixed_detector_noise_keeps_batched_template_path(detector_problem):
+    f, data, psd = detector_problem
+    ifos = ["H1", "L1"]
+    alpha = np.array([[8.0, 5.0]])
+    delta = np.array([[2.0, 0.9]])
+    theta = _repeat_noise(
+        np.array([0.4, 0.5]),
+        _detector_parameters(alpha, delta, ddims=False),
+    )
+    template = ToyTemplate(ifos, f)
+    likelihood = GWLikelihoods(
+        data=data,
+        f=f,
+        ifos_list=ifos,
+        noise=psd,
+        template=template,
+        ddims=False,
+        nsegs=2,
+        cpu_cores=1,
+        detector_dependent_noise=True,
+        detector_noise_models=["gaussian", "hyperbolic"],
+    )
+
+    batched = likelihood.hyperbolic_classic(theta)
+    likelihood._batched_template = False
+    per_walker = likelihood.hyperbolic_classic(theta)
+
+    np.testing.assert_allclose(batched, per_walker, rtol=1e-14, atol=1e-14)
+    assert template.batch_calls == 1
+    assert template.single_calls == theta.shape[0]
+
+
+def test_detector_noise_models_require_detector_dependent_noise(detector_problem):
+    f, data, psd = detector_problem
+
+    with pytest.raises(ValueError, match="detector_dependent_noise=True"):
+        GWLikelihoods(
+            data=data,
+            f=f,
+            ifos_list=["H1", "L1"],
+            noise=psd,
+            template=ToyTemplate(["H1", "L1"], f),
+            ddims=False,
+            nsegs=2,
+            detector_noise_models=["gaussian", "hyperbolic"],
+        )
+
+
 def test_detector_dependent_noise_gpu_request_matches_cpu(detector_problem):
     from hyperwave.likelihoods import gpu_backend_available
 

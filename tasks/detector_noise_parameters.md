@@ -45,14 +45,20 @@ likelihood sums factorized per-detector hyperbolic log densities.
   marginalization.
 - [x] Check the GPU-requested path. If CuPy/CUDA is absent, the test verifies
   the existing NumPy fallback and the same batched call path.
+- [x] Add a mixed-detector model mask so selected detectors can stay Gaussian
+  while others use detector-dependent hyperbolic noise.
+- [x] Add a fast example with Gaussian H1 noise and heavy-tailed L1 noise,
+  recovered with H1 Gaussian and L1 hyperbolic.
 
 ## Verification
 
 - `python -m compileall -q src/hyperwave/likelihoods/distributions_fd.py src/hyperwave/likelihoods/gwparallel.py tests/test_detector_noise_parameters.py`
-- `PYTHONPATH=src pytest tests/test_detector_noise_parameters.py -q`: 8 passed.
-- `PYTHONPATH=src pytest --ignore=tests/test_pp.py`: 39 passed, 1 skipped.
+- `PYTHONPATH=src pytest tests/test_detector_noise_parameters.py -q`: 12 passed.
+- `PYTHONPATH=src pytest --ignore=tests/test_pp.py`: 43 passed, 1 skipped.
 - `PYTHONPATH=src mkdocs build --strict`: passed. Material for MkDocs printed
   its upstream MkDocs 2.0 warning, but the strict build completed.
+- `PYTHONPATH=src python examples/noise/mixed_detector_noise_recovery.py --no-plot`:
+  true amplitude 1.0000, all-Gaussian recovery 1.0614, mixed recovery 1.0185.
 - `PYTHONPATH=src pytest tests/test_pp.py -q` still fails on
   `ModuleNotFoundError: No module named 'hyperwave.validation'` on the untouched
   calibration checkout, so this is a pre-existing calibration-branch collection
