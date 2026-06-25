@@ -30,6 +30,38 @@ like = GWLikelihoods(..., ddims=False, nsegs=4)
 logl = like.hyperbolic_classic(thetas)   # thetas = [signal params, alpha, delta_0..3]
 ```
 
+Set `detector_dependent_noise=True` to give each detector its own hyperbolic
+shape parameters. The detector-specific noise parameters are positional and
+detector-major, following `ifos_list`.
+
+For `ddims=False` and `ifos_list=["H1", "L1"]`:
+
+```python
+like = GWLikelihoods(..., ifos_list=["H1", "L1"], ddims=False, nsegs=2,
+                     detector_dependent_noise=True)
+# thetas = [signal params, alpha_H1, alpha_L1,
+#           delta_H1_0, delta_H1_1, delta_L1_0, delta_L1_1]
+```
+
+For `ddims=True`, each detector has one `alpha` and one `delta` per segment:
+
+```python
+# thetas = [signal params,
+#           alpha_H1_0, alpha_H1_1, alpha_L1_0, alpha_L1_1,
+#           delta_H1_0, delta_H1_1, delta_L1_0, delta_L1_1]
+```
+
+You can also mix Gaussian and hyperbolic detectors by passing
+`detector_noise_models` alongside `detector_dependent_noise=True`. Only
+detectors marked `"hyperbolic"` receive shape parameters.
+
+```python
+like = GWLikelihoods(..., ifos_list=["H1", "L1"], ddims=False, nsegs=2,
+                     detector_dependent_noise=True,
+                     detector_noise_models=["gaussian", "hyperbolic"])
+# thetas = [signal params, alpha_L1, delta_L1_0, delta_L1_1]
+```
+
 ## Whittle (per-segment noise levels)
 
 The Whittle likelihood with a free log-level per frequency segment — use when
