@@ -7,7 +7,6 @@ over-confident ones.
 """
 
 import numpy as np
-import pytest  # noqa: F401
 
 from hyperwave import Result
 from hyperwave.validation import credible_levels, make_pp_plot, pp_pvalues
