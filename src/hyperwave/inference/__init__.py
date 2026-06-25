@@ -1,7 +1,7 @@
 """Inference helpers for HyperWave."""
 
 from .convergence import WaveletConvergenceStopping
-from .priors import calibration_node_priors
+from .priors import calibration_node_priors, per_detector_noise_priors
 from .sampling import DataInference, LVKinference
 
 # Optional submodules — re-exported only if their source files are present.
@@ -59,6 +59,7 @@ __all__ = [
     "InferenceRunner",
     "DataInference",
     "calibration_node_priors",
+    "per_detector_noise_priors",
     "FastJumpInference",
     "FastJumpModel",
     "FastJumpResult",

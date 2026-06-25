@@ -35,7 +35,23 @@ class GWLikelihoods(BaseLikelihood):
         cal_n_nodes=None,
         cal_minimum_frequency=None,
         cal_maximum_frequency=None,
+        shape_per_detector=False,
     ):
+        """
+        Parameters
+        ----------
+        shape_per_detector : bool, default False
+            If True, the hyperbolic shape parameters α and δ (or α and the
+            ratio δ/α) are sampled *per detector* rather than shared across
+            the detector network. The combined-residual likelihood is replaced
+            by a sum of single-detector MVH likelihoods, so each interferometer
+            sees its own non-Gaussian noise scale. Requires ``ddims=True`` and
+            is currently supported only on the non-calibration paths
+            (``hyperbolic`` and ``hyperbolic_classic``); the ``*_calmarg`` and
+            ``*_calsample`` variants raise ``NotImplementedError`` when this is
+            set. The added parameter count is
+            ``2 * nsegs * n_ifo`` instead of ``2 * nsegs``.
+        """
         self._init_backend(gpu=gpu)
 
         self._template = template
@@ -65,8 +81,25 @@ class GWLikelihoods(BaseLikelihood):
         self._nsegs = int(nsegs)
         self._inf = infs
         self._logfreq = np.log10(self._f)
-        self._ndims = self._wfdims + 2 * self._nsegs if self._ddims else self._wfdims + self._nsegs + 1
-        self._hdims = self._wfdims + self._nsegs if self._ddims else self._wfdims + 1
+        self._shape_per_detector = bool(shape_per_detector)
+        if self._shape_per_detector and not self._ddims:
+            raise NotImplementedError(
+                "shape_per_detector=True currently requires ddims=True "
+                "(per-detector × per-segment α, δ)."
+            )
+        if self._shape_per_detector:
+            # α and δ (or ratio) each occupy nsegs * n_ifo columns, stored in
+            # segment-major order: (seg0_ifo0, seg0_ifo1, ..., seg1_ifo0, ...).
+            self._n_shape_blocks = self._nsegs * self._nchannels
+            self._hdims = self._wfdims + self._n_shape_blocks
+            self._ndims = self._wfdims + 2 * self._n_shape_blocks
+            # Per-detector MVH: each ifo is one complex (= 2 real) channel.
+            self._d_pd = 2
+            self._lam_pd = (self._d_pd + 1) / 2
+            self._C0_pd = ((1 - self._d_pd) / 2) * np.log(2.0 * np.pi)
+        else:
+            self._ndims = self._wfdims + 2 * self._nsegs if self._ddims else self._wfdims + self._nsegs + 1
+            self._hdims = self._wfdims + self._nsegs if self._ddims else self._wfdims + 1
         self.num_jobs = 1 if self._use_gpu else int(cpu_cores)
 
         self.whiten = None
@@ -116,10 +149,30 @@ class GWLikelihoods(BaseLikelihood):
             self._caldims = self._nchannels * 2 * int(cal_n_nodes)
 
     def _alpha_columns(self, theta):
+        """Slice α from ``theta``.
+
+        Shape returned:
+          * default: ``(N, nsegs)`` if ``ddims`` else ``(N, 1)``.
+          * shape_per_detector: ``(N, nsegs, n_ifo)`` (segment-major).
+        """
         alpha = theta[:, self._wfdims:self._hdims]
+        if self._shape_per_detector:
+            return alpha.reshape(alpha.shape[0], self._nsegs, self._nchannels)
         if self._ddims:
             return alpha
         return alpha[:, :1]
+
+    def _tail_columns(self, theta):
+        """Slice the δ / ratio block (everything after ``_hdims`` up to ``_ndims``).
+
+        Shape returned:
+          * default: ``(N, nsegs)``.
+          * shape_per_detector: ``(N, nsegs, n_ifo)`` (segment-major).
+        """
+        tail = theta[:, self._hdims:self._ndims]
+        if self._shape_per_detector:
+            return tail.reshape(tail.shape[0], self._nsegs, self._nchannels)
+        return tail
 
     def _get_yy_noise(self):
         return self.inner_product(self.data, self.data, psd=self.psd)
@@ -157,6 +210,44 @@ class GWLikelihoods(BaseLikelihood):
         else:
             residuals = Parallel(n_jobs=self.num_jobs)(
                 delayed(self.inner_residual)(p[walker, :]) for walker in range(p.shape[0])
+            )
+        return self._backend.asarray(residuals)
+
+    def inner_residual_per_ifo(self, theta):
+        """Single-walker noise-weighted residual, **kept per-detector**.
+
+        Same math as :meth:`inner_residual` but does NOT sum the ``ifo`` axis;
+        returns shape ``(n_ifo, n_freq)`` = ``4 Re[df * conj(r) r / Sn]``.
+        Used by :meth:`hyperbolic` / :meth:`hyperbolic_classic` when
+        ``shape_per_detector=True``.
+        """
+        signal = self._template.make_injections_to_ifo(np.asarray(theta))
+        residual = self._backend.zeros(self.data.shape, dtype=self.data.dtype)
+        for ifo, channel in enumerate(self.ifos):
+            residual[ifo, :] = self.data[ifo, :] - self._backend.asarray(signal[channel])
+        yy = (residual.conj() * residual) / self.psd
+        return 4.0 * self.xp.real(self.df * yy)
+
+    def inner_residual_batch_per_ifo(self, p):
+        """Batched per-detector residual; returns shape ``(N, n_ifo, n_freq)``.
+
+        Same as :meth:`inner_residual_batch` but with the detector axis kept.
+        """
+        signal = self._backend.asarray(self._template.make_injections_to_ifo_batch(p))
+        residual = self.data[None, :, :] - signal  # (N, n_ifo, n_freq)
+        yy = (residual.conj() * residual) / self.psd[None, :, :]
+        return 4.0 * self.xp.real(self.df * yy)
+
+    def _get_yy_per_ifo(self, p):
+        """Per-detector residual driver (mirrors :meth:`_get_yy`)."""
+        p = self._ensure_2d(p)
+        if self._batched_template:
+            return self.inner_residual_batch_per_ifo(p)
+        if self._use_gpu or self.num_jobs <= 1:
+            residuals = [self.inner_residual_per_ifo(p[walker, :]) for walker in range(p.shape[0])]
+        else:
+            residuals = Parallel(n_jobs=self.num_jobs)(
+                delayed(self.inner_residual_per_ifo)(p[walker, :]) for walker in range(p.shape[0])
             )
         return self._backend.asarray(residuals)
 
@@ -238,6 +329,12 @@ class GWLikelihoods(BaseLikelihood):
             raise RuntimeError(
                 f"{name} requires a calibration_bank passed to GWLikelihoods(...). "
                 "Build one with hyperwave.detectors.make_calibration_bank(...)."
+            )
+        if self._shape_per_detector:
+            raise NotImplementedError(
+                f"{name} is not yet implemented for shape_per_detector=True. "
+                "Use the non-calmarg likelihood (hyperbolic / hyperbolic_classic) "
+                "or run with the shared shape parameters."
             )
 
     def _calmarg(self, theta, kernel):
@@ -509,6 +606,12 @@ class GWLikelihoods(BaseLikelihood):
                 f"{name} requires cal_n_nodes to be set on GWLikelihoods(...). "
                 "Pass cal_n_nodes=<int> (and matching calibration_node_priors)."
             )
+        if self._shape_per_detector:
+            raise NotImplementedError(
+                f"{name} is not yet implemented for shape_per_detector=True. "
+                "Use the non-calsample likelihood (hyperbolic / hyperbolic_classic) "
+                "or run with the shared shape parameters."
+            )
 
     def _calibration_factor(self, cal):
         """Per-walker response ``C(f)`` from sampled nodes ``cal`` of shape ``(N, caldims)``.
@@ -590,7 +693,50 @@ class GWLikelihoods(BaseLikelihood):
         )
         return likelihood.squeeze()
 
+    def _hyperbolic_per_detector(self, theta, classic):
+        """Per-detector hyperbolic log-likelihood (sum of independent MVH_2 per ifo).
+
+        Used when ``shape_per_detector=True``. Each interferometer is modeled as
+        its own bivariate-MVH (one complex frequency channel), with its own
+        ``α``, ``δ``; the total log-likelihood is the sum over detectors and
+        segments. Reduces to the standard single-detector hyperbolic likelihood
+        when ``n_ifo == 1``.
+        """
+        theta = self._ensure_2d(theta)
+        alpha = self._backend.asarray(self._alpha_columns(theta))  # (N, nsegs, n_ifo)
+        tail = self._backend.asarray(self._tail_columns(theta))    # (N, nsegs, n_ifo)
+        self.yy_pd = self._get_yy_per_ifo(p=theta[:, : self._wfdims])  # (N, n_ifo, n_freq)
+
+        likelihood = self.xp.zeros((theta.shape[0], len(self._segi)))
+        for i, si in enumerate(self._segi):
+            alpha_i = alpha[:, i, :]                       # (N, n_ifo)
+            delta_i = tail[:, i, :] if classic else alpha_i * tail[:, i, :]
+            alpha_delta_i = alpha_i * delta_i              # (N, n_ifo)
+
+            log_kappa = self._backend.log_kv(self._lam_pd, alpha_delta_i)  # (N, n_ifo)
+            # yy_pd[:, :, si] is (N, n_ifo, len(si)); broadcast δ_i (N, n_ifo, 1).
+            term_sqrt = self.xp.sum(
+                self.xp.sqrt(delta_i[:, :, None] ** 2 + self.yy_pd[:, :, si]).real,
+                axis=-1,
+            )                                              # (N, n_ifo)
+            term_lambda = self._lam_pd * self.xp.log(alpha_i / delta_i)        # (N, n_ifo)
+            term_rest = self._C0_pd - self.xp.log(2.0 * alpha_i) - log_kappa   # (N, n_ifo)
+
+            ll_seg = self._Nd[i] * (term_lambda + term_rest) - alpha_i * term_sqrt
+            likelihood[:, i] = self.xp.sum(ll_seg, axis=-1)  # sum over ifo
+
+        likelihood = self.xp.nan_to_num(
+            self.xp.sum(likelihood, axis=-1),
+            copy=True,
+            nan=self._inf,
+            posinf=self._inf,
+            neginf=self._inf,
+        )
+        return self._prepare_outputs(likelihood).squeeze()
+
     def hyperbolic(self, theta):
+        if self._shape_per_detector:
+            return self._hyperbolic_per_detector(theta, classic=False)
         theta = self._ensure_2d(theta)
         alpha = self._backend.asarray(self._alpha_columns(theta))
         ratio = self._backend.asarray(theta[:, self._hdims :])
@@ -620,6 +766,8 @@ class GWLikelihoods(BaseLikelihood):
         return self._prepare_outputs(likelihood).squeeze()
 
     def hyperbolic_classic(self, theta):
+        if self._shape_per_detector:
+            return self._hyperbolic_per_detector(theta, classic=True)
         theta = self._ensure_2d(theta)
         alpha = self._backend.asarray(self._alpha_columns(theta))
         delta = self._backend.asarray(theta[:, self._hdims :])

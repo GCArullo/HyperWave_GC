@@ -2,6 +2,64 @@ import numpy as np
 from scipy.stats import rv_continuous
 
 
+def per_detector_noise_priors(
+    ifo_names,
+    nsegs,
+    alpha_range=(0.0, 30.0),
+    delta_range=(0.0, 30.0),
+    classic=True,
+):
+    """Priors for ``GWLikelihoods(..., shape_per_detector=True)``.
+
+    Builds an ordered dict of uniform ``α`` and ``δ`` (or ``ratio``) priors in
+    **segment-major** order — exactly the layout the per-detector
+    ``_alpha_columns`` / ``_tail_columns`` reshape expects::
+
+        alpha_<ifo0>_seg0, alpha_<ifo1>_seg0, ..., alpha_<ifoK>_seg0,
+        alpha_<ifo0>_seg1, ..., alpha_<ifoK>_seg{nsegs-1},
+        delta_<ifo0>_seg0, ..., delta_<ifoK>_seg{nsegs-1}      # if classic=True
+        # (or ratio_<...> if classic=False)
+
+    Pass the result as ``noise_priors=`` to :class:`LVKinference`. The matching
+    likelihood is :meth:`GWLikelihoods.hyperbolic_classic` for ``classic=True``,
+    or :meth:`GWLikelihoods.hyperbolic` for ``classic=False``.
+
+    Parameters
+    ----------
+    ifo_names : sequence of str
+        Detector names, in the same order as ``ifos_list`` passed to
+        :class:`GWLikelihoods`.
+    nsegs : int
+        Number of frequency segments (must match ``GWLikelihoods.nsegs``).
+    alpha_range, delta_range : (float, float)
+        Uniform-prior bounds. Can be a single ``(lo, hi)`` shared across all
+        (ifo, seg), or a dict keyed by detector name for per-detector bounds.
+    classic : bool, default True
+        ``True`` builds priors for :meth:`hyperbolic_classic` (α, δ);
+        ``False`` for :meth:`hyperbolic` (α, ratio = δ/α).
+    """
+    import bilby
+
+    def _bounds(value, name):
+        return value[name] if isinstance(value, dict) else value
+
+    priors = {}
+    tail_name = "delta" if classic else "ratio"
+    # α block — segment-major: outer loop over segments, inner loop over ifos.
+    for i in range(nsegs):
+        for ifo in ifo_names:
+            lo, hi = _bounds(alpha_range, ifo)
+            key = f"alpha_{ifo}_{i}"
+            priors[key] = bilby.core.prior.Uniform(lo, hi, name=key)
+    # δ / ratio block — same ordering.
+    for i in range(nsegs):
+        for ifo in ifo_names:
+            lo, hi = _bounds(delta_range, ifo)
+            key = f"{tail_name}_{ifo}_{i}"
+            priors[key] = bilby.core.prior.Uniform(lo, hi, name=key)
+    return priors
+
+
 def calibration_node_priors(ifo_names, n_nodes, amplitude_sigma=0.05, phase_sigma=0.05):
     """Gaussian priors for sampled spline calibration nodes (Method A).
 
