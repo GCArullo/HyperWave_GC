@@ -2,6 +2,36 @@ import numpy as np
 from scipy.stats import rv_continuous
 
 
+def calibration_node_priors(ifo_names, n_nodes, amplitude_sigma=0.05, phase_sigma=0.05):
+    """Gaussian priors for sampled spline calibration nodes (Method A).
+
+    Returns an ordered dict of bilby ``Gaussian`` priors,
+    ``recalib_{ifo}_amplitude_{i}`` then ``recalib_{ifo}_phase_{i}`` per
+    detector, matching the calibration-node layout expected by
+    :class:`~hyperwave.likelihoods.GWLikelihoods` ``*_calsample`` methods
+    (``cal_n_nodes=n_nodes``). Append these **last** to the prior dict handed to
+    :class:`LVKinference` so the calibration columns land at the end of
+    ``theta``. ``amplitude_sigma`` / ``phase_sigma`` may be a float (all
+    detectors) or a per-detector dict.
+    """
+    import bilby
+
+    def _per(value, name):
+        return value[name] if isinstance(value, dict) else value
+
+    priors = {}
+    for name in ifo_names:
+        a = _per(amplitude_sigma, name)
+        for i in range(n_nodes):
+            key = f"recalib_{name}_amplitude_{i}"
+            priors[key] = bilby.core.prior.Gaussian(mu=0.0, sigma=a, name=key)
+        p = _per(phase_sigma, name)
+        for i in range(n_nodes):
+            key = f"recalib_{name}_phase_{i}"
+            priors[key] = bilby.core.prior.Gaussian(mu=0.0, sigma=p, name=key)
+    return priors
+
+
 def wrapper_for_eryn(bilby_prior, name="bilby_eryn_wrapper"):
         class Prior(rv_continuous):
             def __init__(self):
