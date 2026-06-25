@@ -38,6 +38,7 @@ class GWLikelihoods(BaseLikelihood):
         starting_index=0,
         calibration_correction_type=None,
         calibration_chunk_size=64,
+        detector_dependent_noise=False,
     ):
         self._init_backend(gpu=gpu)
 
@@ -59,17 +60,25 @@ class GWLikelihoods(BaseLikelihood):
         self.df = self._f[1] - self._f[0]
         self.data = self._backend.asarray(data)
         self.psd = self._backend.asarray(noise)
+        self.detector_dependent_noise = bool(detector_dependent_noise)
 
         self._d = 2 * self._nchannels
         self._lam = (self._d + 1) / 2
         self._C0 = ((1 - self._d) / 2) * np.log(2.0 * np.pi)
+        self._detector_d = 2
+        self._detector_lam = (self._detector_d + 1) / 2
+        self._detector_C0 = ((1 - self._detector_d) / 2) * np.log(2.0 * np.pi)
 
         self._ddims = bool(ddims)
         self._nsegs = int(nsegs)
         self._inf = infs
         self._logfreq = np.log10(self._f)
-        self._ndims = self._wfdims + 2 * self._nsegs if self._ddims else self._wfdims + self._nsegs + 1
-        self._hdims = self._wfdims + self._nsegs if self._ddims else self._wfdims + 1
+        alpha_dims = self._nsegs if self._ddims else 1
+        if self.detector_dependent_noise:
+            alpha_dims *= self._nchannels
+        delta_dims = self._nsegs * self._nchannels if self.detector_dependent_noise else self._nsegs
+        self._hdims = self._wfdims + alpha_dims
+        self._ndims = self._hdims + delta_dims
         self.num_jobs = 1 if self._use_gpu else int(cpu_cores)
 
         self.whiten = None
@@ -92,9 +101,21 @@ class GWLikelihoods(BaseLikelihood):
 
     def _alpha_columns(self, theta):
         alpha = theta[:, self._wfdims:self._hdims]
+        if self.detector_dependent_noise:
+            return self._reshape_detector_parameter(alpha, segmented=self._ddims)
         if self._ddims:
             return alpha
         return alpha[:, :1]
+
+    def _noise_parameter_columns(self, theta):
+        values = theta[:, self._hdims :]
+        if self.detector_dependent_noise:
+            return self._reshape_detector_parameter(values, segmented=True)
+        return values
+
+    def _reshape_detector_parameter(self, values, segmented):
+        width = self._nsegs if segmented else 1
+        return values.reshape(values.shape[0], self._nchannels, width)
 
     def _get_yy_noise(self):
         return self.inner_product(self.data, self.data, psd=self.psd)
@@ -187,6 +208,19 @@ class GWLikelihoods(BaseLikelihood):
             syy = self.df * self.xp.sum(yy, axis=1)
             yield 4.0 * self.xp.real(syy)
 
+    def _calibrated_yy_detector_chunks(self, signal):
+        chunk = max(1, self.calibration_chunk_size)
+        n_curves = self.number_of_response_curves
+        for start in range(0, n_curves, chunk):
+            stop = min(start + chunk, n_curves)
+            calibration = self.calibration_draws[:, start:stop, :]
+            residual = (
+                self.data[None, :, None, :]
+                - signal[:, :, None, :] * calibration[None, :, :, :]
+            )
+            yy = (residual.conj() * residual) / self.psd[None, :, None, :]
+            yield 4.0 * self.df * self.xp.real(yy)
+
     def _logmeanexp_draws(self, logl):
         max_logl = self.xp.max(logl, axis=1, keepdims=True)
         centered = self.xp.exp(logl - max_logl)
@@ -207,6 +241,17 @@ class GWLikelihoods(BaseLikelihood):
         syy = self.df * self.xp.sum(yy, axis=0)
         return 4.0 * self.xp.real(syy)
 
+    def inner_residual_detector(self, theta):
+        signal = self._template.make_injections_to_ifo(np.asarray(theta))
+        residual = self._backend.zeros(self.data.shape, dtype=self.data.dtype)
+
+        for ifo, channel in enumerate(self.ifos):
+            residual[ifo, :] = self.data[ifo, :] - self._backend.asarray(signal[channel])
+
+        yy = residual.conj() * residual
+        yy = yy / self.psd
+        return 4.0 * self.df * self.xp.real(yy)
+
     def inner_residual_batch(self, p):
         """Vectorised noise-weighted residual for a batch ``p`` of shape ``(N, wfdims)``.
 
@@ -219,6 +264,12 @@ class GWLikelihoods(BaseLikelihood):
         syy = self.df * self.xp.sum(yy, axis=1)  # sum over detectors -> (N, n_freq)
         return 4.0 * self.xp.real(syy)
 
+    def inner_residual_detector_batch(self, p):
+        signal = self._signal_batch(p)
+        residual = self.data[None, :, :] - signal  # (N, n_ifo, n_freq)
+        yy = (residual.conj() * residual) / self.psd[None, :, :]
+        return 4.0 * self.df * self.xp.real(yy)
+
     def _get_yy(self, p):
         p = self._ensure_2d(p)
         if self._batched_template:
@@ -228,6 +279,18 @@ class GWLikelihoods(BaseLikelihood):
         else:
             residuals = Parallel(n_jobs=self.num_jobs)(
                 delayed(self.inner_residual)(p[walker, :]) for walker in range(p.shape[0])
+            )
+        return self._backend.asarray(residuals)
+
+    def _get_yy_detector(self, p):
+        p = self._ensure_2d(p)
+        if self._batched_template:
+            return self.inner_residual_detector_batch(p)
+        if self._use_gpu or self.num_jobs <= 1:
+            residuals = [self.inner_residual_detector(p[walker, :]) for walker in range(p.shape[0])]
+        else:
+            residuals = Parallel(n_jobs=self.num_jobs)(
+                delayed(self.inner_residual_detector)(p[walker, :]) for walker in range(p.shape[0])
             )
         return self._backend.asarray(residuals)
 
@@ -279,10 +342,15 @@ class GWLikelihoods(BaseLikelihood):
     def hyperbolic(self, theta):
         theta = self._ensure_2d(theta)
         if self.calibration_marginalization:
+            if self.detector_dependent_noise:
+                return self._hyperbolic_detector_calibration_marginalized(theta, classic=False)
             return self._hyperbolic_calibration_marginalized(theta, classic=False)
 
         alpha = self._backend.asarray(self._alpha_columns(theta))
-        ratio = self._backend.asarray(theta[:, self._hdims :])
+        ratio = self._backend.asarray(self._noise_parameter_columns(theta))
+        if self.detector_dependent_noise:
+            return self._hyperbolic_by_detector(theta, alpha, alpha * ratio)
+
         self.yy = self._get_yy(p=theta[:, : self._wfdims])
 
         likelihood = self.xp.zeros((theta.shape[0], len(self._segi)))
@@ -311,10 +379,15 @@ class GWLikelihoods(BaseLikelihood):
     def hyperbolic_classic(self, theta):
         theta = self._ensure_2d(theta)
         if self.calibration_marginalization:
+            if self.detector_dependent_noise:
+                return self._hyperbolic_detector_calibration_marginalized(theta, classic=True)
             return self._hyperbolic_calibration_marginalized(theta, classic=True)
 
         alpha = self._backend.asarray(self._alpha_columns(theta))
-        delta = self._backend.asarray(theta[:, self._hdims :])
+        delta = self._backend.asarray(self._noise_parameter_columns(theta))
+        if self.detector_dependent_noise:
+            return self._hyperbolic_by_detector(theta, alpha, delta)
+
         self.yy = self._get_yy(p=theta[:, : self._wfdims])
 
         likelihood = self.xp.zeros((theta.shape[0], len(self._segi)))
@@ -332,6 +405,36 @@ class GWLikelihoods(BaseLikelihood):
 
         likelihood = self.xp.nan_to_num(
             self.xp.sum(likelihood, axis=-1),
+            copy=True,
+            nan=self._inf,
+            posinf=self._inf,
+            neginf=self._inf,
+        )
+        return self._prepare_outputs(likelihood).squeeze()
+
+    def _hyperbolic_by_detector(self, theta, alpha, delta):
+        self.yy = self._get_yy_detector(p=theta[:, : self._wfdims])
+
+        likelihood = self.xp.zeros((theta.shape[0], self._nchannels, len(self._segi)))
+        for ifo in range(self._nchannels):
+            yy_ifo = self.yy[:, ifo, :]
+            for i, si in enumerate(self._segi):
+                alpha_i = alpha[:, ifo, i] if self._ddims else alpha[:, ifo, 0]
+                delta_i = delta[:, ifo, i]
+                alpha_delta_i = alpha_i * delta_i
+
+                log_kappa = self._backend.log_kv(self._detector_lam, alpha_delta_i)
+                term_sqrt = self.xp.sum(
+                    self.xp.sqrt(delta_i[:, None] ** 2 + yy_ifo[:, si]).real,
+                    axis=-1,
+                )
+                term_lambda = self._detector_lam * self.xp.log(alpha_i / delta_i)
+                term_rest = self._detector_C0 - self.xp.log(2.0 * alpha_i) - log_kappa
+
+                likelihood[:, ifo, i] = self._Nd[i] * (term_lambda + term_rest) - alpha_i * term_sqrt
+
+        likelihood = self.xp.nan_to_num(
+            self.xp.sum(likelihood, axis=(1, 2)),
             copy=True,
             nan=self._inf,
             posinf=self._inf,
@@ -388,6 +491,46 @@ class GWLikelihoods(BaseLikelihood):
                     - alpha_i[:, None] * term_sqrt
                 )
             chunks.append(self.xp.sum(likelihood, axis=-1))
+
+        likelihood = self._combine_calibration_logl(chunks)
+        likelihood = self.xp.nan_to_num(
+            likelihood,
+            copy=True,
+            nan=self._inf,
+            posinf=self._inf,
+            neginf=self._inf,
+        )
+        return self._prepare_outputs(likelihood).squeeze()
+
+    def _hyperbolic_detector_calibration_marginalized(self, theta, classic):
+        alpha = self._backend.asarray(self._alpha_columns(theta))
+        tail = self._backend.asarray(self._noise_parameter_columns(theta))
+        signal = self._signal_batch(theta[:, : self._wfdims])
+
+        chunks = []
+        for yy in self._calibrated_yy_detector_chunks(signal):
+            likelihood = self.xp.zeros(
+                (theta.shape[0], yy.shape[2], self._nchannels, len(self._segi))
+            )
+            for ifo in range(self._nchannels):
+                yy_ifo = yy[:, ifo, :, :]
+                for i, si in enumerate(self._segi):
+                    alpha_i = alpha[:, ifo, i] if self._ddims else alpha[:, ifo, 0]
+                    delta_i = tail[:, ifo, i] if classic else alpha_i * tail[:, ifo, i]
+                    alpha_delta_i = alpha_i * delta_i
+
+                    log_kappa = self._backend.log_kv(self._detector_lam, alpha_delta_i)
+                    term_sqrt = self.xp.sum(
+                        self.xp.sqrt(delta_i[:, None, None] ** 2 + yy_ifo[:, :, si]).real,
+                        axis=-1,
+                    )
+                    term_lambda = self._detector_lam * self.xp.log(alpha_i / delta_i)
+                    term_rest = self._detector_C0 - self.xp.log(2.0 * alpha_i) - log_kappa
+                    likelihood[:, :, ifo, i] = (
+                        self._Nd[i] * (term_lambda + term_rest)[:, None]
+                        - alpha_i[:, None] * term_sqrt
+                    )
+            chunks.append(self.xp.sum(likelihood, axis=(2, 3)))
 
         likelihood = self._combine_calibration_logl(chunks)
         likelihood = self.xp.nan_to_num(
