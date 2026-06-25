@@ -11,12 +11,12 @@ except metadata.PackageNotFoundError:
 
 from . import detectors, plots
 from .detectors import (
-    Detector,
     CubicSpline,
+    Detector,
     Interferometer,
     InterferometerList,
-    Precomputed,
     PowerSpectralDensity,
+    Precomputed,
     Recalibrate,
     StrainData,
     Template,
