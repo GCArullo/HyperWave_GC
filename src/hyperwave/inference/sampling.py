@@ -62,7 +62,7 @@ class LVKinference:
     def _prepare_priors(self):
         """Construct full Bilby prior dictionary with user and noise parameters."""
         self.priors = bilby.core.prior.PriorDict(self.user_priors)
-        if self.common["like"] not in ['gauss']:
+        if self.common["like"] not in ['gauss', 'gaussian']:
             self.priors.update(self.noise_priors)
         self.ndims = len(self.priors)
         # Normalize `self.periodic` to be a list of integer indices.
