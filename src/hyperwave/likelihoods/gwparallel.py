@@ -445,8 +445,10 @@ class GWLikelihoods(BaseLikelihood):
         derivs = []
         for i in range(nwf):
             step = rel_step * abs(theta[i]) + abs_step
-            tp = theta.copy(); tp[i] += step
-            tm = theta.copy(); tm[i] -= step
+            tp = theta.copy()
+            tp[i] += step
+            tm = theta.copy()
+            tm[i] -= step
             derivs.append((waveform(tp) - waveform(tm)) / (2.0 * step))
 
         gamma = np.zeros((nwf, nwf))
