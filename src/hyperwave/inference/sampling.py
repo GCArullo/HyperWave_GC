@@ -225,6 +225,7 @@ class LVKinference:
         n_total = self.kwargs.get("n_total", 50000)
         n_effective = self.kwargs.get("n_effective", 12000) # 2000
         n_active = self.kwargs.get("n_active", 400) #1000
+        n_steps = self.kwargs.get("n_steps", max(10, int(0.7 * self.ndims)))
 
         sampler = pc.Sampler(
             likelihood=self.loglikelihood,
@@ -233,7 +234,7 @@ class LVKinference:
             n_active=n_active,
             vectorize=True,
             periodic=self.periodic,
-            n_steps=max(10, int(0.7 * self.ndims)), #n_steps=self.ndims
+            n_steps=n_steps,
         )
 
         print("> Running POCOMC sampling...")
