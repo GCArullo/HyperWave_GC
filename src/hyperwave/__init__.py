@@ -9,20 +9,18 @@ try:  # Prefer distribution version if installed
 except metadata.PackageNotFoundError:
     pass
 
-from . import detectors, plots
+from . import detectors, plots, validation
 from .detectors import (
-    Detector,
     CubicSpline,
+    Detector,
     Interferometer,
     InterferometerList,
-    Precomputed,
     PowerSpectralDensity,
+    Precomputed,
     Recalibrate,
-    SplineCalibration,
     StrainData,
     Template,
     WaveletTemplate,
-    make_calibration_bank,
 )
 from .detectors.lvk import GW, DetectorNoise
 from .inference import (
@@ -34,7 +32,6 @@ from .inference import (
     LVKinference,
     SNRPrior,
     build_wavelet_priors,
-    calibration_node_priors,
     flow_backend_available,
     make_flow_distribution_move,
     make_flow_rj_move,
@@ -51,11 +48,6 @@ from .ml4gw import ml4gw_available, torch_cuda_available
 from .result import Result
 from .utils import load_object, save_object
 
-try:
-    from . import validation
-except ImportError:
-    validation = None  # pending upload
-
 __all__ = [
     "__version__",
     # io / results
@@ -66,7 +58,6 @@ __all__ = [
     "LVKinference",
     "InferenceRunner",
     "DataInference",
-    "calibration_node_priors",
     "AdaptiveFlowProposal",
     "ContextAwareBirthRJMove",
     "FlowTrainingCallback",
@@ -91,8 +82,6 @@ __all__ = [
     "Precomputed",
     "Template",
     "WaveletTemplate",
-    "SplineCalibration",
-    "make_calibration_bank",
     "DetectorNoise",
     "GW",
     # wavelet reconstruction
