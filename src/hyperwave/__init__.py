@@ -9,7 +9,7 @@ try:  # Prefer distribution version if installed
 except metadata.PackageNotFoundError:
     pass
 
-from . import detectors, plots
+from . import detectors, plots, validation
 from .detectors import (
     Detector,
     Interferometer,
@@ -44,17 +44,6 @@ from .likelihoods import (
 from .ml4gw import ml4gw_available, torch_cuda_available
 from .result import Result
 from .utils import load_object, save_object
-
-
-class _MissingValidation:
-    def __getattr__(self, name):
-        raise ImportError("hyperwave.validation is not available in this source tree.")
-
-
-try:
-    from . import validation
-except ImportError:
-    validation = _MissingValidation()
 
 __all__ = [
     "__version__",
